@@ -1,0 +1,43 @@
+{
+  "mqtt": {
+    "port": 8883,
+    "topic_prefix": "hivis/sensors",
+    "interval_ms": 3000,
+    "keepalive_s": 60
+  },
+  "bme": {
+    "addr": 119,
+    "iaq_warn": 100,
+    "iaq_alert": 200,
+    "bsec_save_interval_h": 6
+  },
+  "mic": {
+    "pin_ws":  12,
+    "pin_sck": 14,
+    "pin_sd":  26,
+    "pin_lr":  13,
+    "cal": 115.0
+  },
+  "misc": {
+    "refresh_ms": 1000,
+    "battery_pin": 36,
+    "battery_min_mv": 330,
+    "battery_max_mv": 420,
+    "battery_multiplier": 2.2
+  },
+  "ota": {
+    "check_interval_h": 24
+  },
+  "display": {
+    "timeout_ms": 0
+  },
+  "buzzer": {
+    "enabled": true,
+    "pin": 25
+  },
+  "button": {
+    "pin": 4,
+    "long_press_ms": 2000,
+    "double_press_ms": 400
+  }
+}

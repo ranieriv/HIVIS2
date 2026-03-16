@@ -1,0 +1,94 @@
+version: "3.8"
+
+services:
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: hivis-mosquitto
+    restart: unless-stopped
+    ports:
+      - "8883:8883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/certs:/mosquitto/certs
+    networks:
+      - hivis-net
+
+  nodered:
+    image: nodered/node-red:latest
+    container_name: hivis-nodered
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered-data:/data
+    depends_on:
+      - mosquitto
+      - influxdb
+    environment:
+      - TZ=America/Regina
+    networks:
+      - hivis-net
+
+  influxdb:
+    image: influxdb:2
+    container_name: hivis-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=hivishitech2026
+      - DOCKER_INFLUXDB_INIT_ORG=hivis
+      - DOCKER_INFLUXDB_INIT_BUCKET=hivis
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=REPLACE_WITH_GENERATED_TOKEN
+    networks:
+      - hivis-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hivis-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=hivishitech2026
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - influxdb
+    networks:
+      - hivis-net
+
+  ota-server:
+    image: python:3.11-slim
+    container_name: hivis-ota
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - /opt/hivis/ota:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./mosquitto/config:/mosquitto/config
+    command: sh -c "pip install docker -q && python server.py"
+    ports:
+      - "8090:8090"
+    networks:
+      - hivis-net
+
+networks:
+  hivis-net:
+    driver: bridge
+
+volumes:
+  nodered-data:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:

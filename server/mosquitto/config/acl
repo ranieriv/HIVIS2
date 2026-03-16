@@ -1,0 +1,27 @@
+# HIVIS Mosquitto ACL
+#
+# Topic naming:
+#   Device publishes to:  hivis/[device_id]/data        (device_id = hivis-[mac])
+#   Device subscribes to: hivis/provision/[mac_no_colons]
+#   Device publishes to:  hivis/register
+#
+# User naming:  device_[mac_no_colons]
+# Example MAC:  aa:bb:cc:dd:ee:ff → user device_aabbccddeeff, device_id hivis-aabbccddeeff
+
+# ---- Node-RED internal bridge (full access) ----
+user nodered_bridge
+topic readwrite hivis/#
+
+# ---- Bootstrap user — shared by all unregistered devices ----
+user hivis_bootstrap
+topic write hivis/register
+topic read  hivis/provision/+
+
+# ---- Device template (copy block per provisioned device) ----
+# user device_aabbccddeeff
+# topic write hivis/hivis-aabbccddeeff/#
+# topic write hivis/register
+# topic read  hivis/provision/aabbccddeeff
+
+# ---- Provisioned devices ----
+# Add entries here using: docker exec -it hivis-mosquitto mosquitto_passwd /mosquitto/config/passwd device_[mac]
