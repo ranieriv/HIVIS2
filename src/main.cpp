@@ -267,7 +267,7 @@ void setup() {
         if (registerDevice()) {
             // Give Mosquitto time to reload passwd after SIGHUP before we connect
             Serial.println("   Waiting for broker reload...");
-            delay(3000);
+            delay(6000);
         }
     }
 
@@ -319,19 +319,19 @@ void loop() {
     if (mqtt) {
         mqtt->loop();
 
-        // If broker keeps rejecting our credentials, re-provision on next boot
-        static int authFailCount = 0;
+        // If broker keeps rejecting our credentials, re-provision after 5 minutes
+        static unsigned long authFailSince = 0;
         if (!mqtt->isConnected() && mqtt->lastState() == -5) {
-            authFailCount++;
-            if (authFailCount > 10) {
-                Serial.println("MQTT: persistent auth failure — clearing credentials, rebooting...");
+            if (authFailSince == 0) authFailSince = millis();
+            if (millis() - authFailSince >= 5UL * 60UL * 1000UL) {
+                Serial.println("MQTT: persistent auth failure (5 min) — clearing credentials, rebooting...");
                 buzzer->beepError();
                 delay(1000);
                 clearNVS();
                 ESP.restart();
             }
         } else {
-            authFailCount = 0;
+            authFailSince = 0;
         }
     }
 
