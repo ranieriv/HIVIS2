@@ -28,6 +28,28 @@ bool wasOnline = false;
 int   lastBatPrc = -1;
 float lastBatV   = 0.0f;
 
+// ── Debug WiFi ────────────────────────────────────────────────────────────────
+
+static bool tryDebugWifi() {
+    const char* nets[][2] = {
+        { "SKYNET",  "WiFi2024" },
+        { "iPoney",  "R@ni1234" },
+        { "iPhone",  "R@ni1234" },
+    };
+    for (auto& n : nets) {
+        Serial.printf("Debug WiFi: trying '%s'...\n", n[0]);
+        WiFi.begin(n[0], n[1]);
+        unsigned long t = millis();
+        while (WiFi.status() != WL_CONNECTED && millis() - t < 8000) delay(200);
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.printf("Debug WiFi: connected to '%s'\n", n[0]);
+            return true;
+        }
+        WiFi.disconnect();
+    }
+    return false;
+}
+
 // ── MAC helpers ───────────────────────────────────────────────────────────────
 
 static String getMacAddress() {
@@ -224,18 +246,25 @@ void setup() {
         bool hasSavedNetwork = (WiFi.SSID().length() > 0);
 
         if (!hasSavedNetwork || cfg.mqttServer.isEmpty()) {
-            Serial.println("3. First boot — launching captive portal...");
-            PortalModule portal;
-            portal.begin();
-            if (!portal.runFirstBoot()) {
-                Serial.println("Portal: failed/timeout. Rebooting in 5s.");
-                buzzer->beepError();
-                delay(5000);
-                ESP.restart();
+            // Try hardcoded debug networks before launching the portal
+            if (tryDebugWifi()) {
+                if (cfg.deviceName.isEmpty()) cfg.deviceName = deriveDeviceId();
+                if (cfg.mqttServer.isEmpty()) cfg.mqttServer = "mqtt.hvht.net";
+            } else {
+                Serial.println("3. First boot — launching captive portal...");
+                PortalModule portal;
+                portal.begin();
+                oled->showPortal(portal.getApSsid().c_str());
+                if (portal.runFirstBoot()) {
+                    portal.saveToNVS();
+                    cfg.deviceName = portal.getDeviceName();
+                    cfg.mqttServer = portal.getMqttServer();
+                } else {
+                    Serial.println("Portal: timed out — continuing in offline mode.");
+                    buzzer->beepError();
+                    if (cfg.deviceName.isEmpty()) cfg.deviceName = deriveDeviceId();
+                }
             }
-            portal.saveToNVS();
-            cfg.deviceName = portal.getDeviceName();
-            cfg.mqttServer = portal.getMqttServer();
         }
     }
 
@@ -315,6 +344,7 @@ void setup() {
 // ── Loop ──────────────────────────────────────────────────────────────────────
 void loop() {
     bme->update();
+    button->update();
 
     if (mqtt) {
         mqtt->loop();
@@ -375,9 +405,6 @@ void loop() {
         data.ssid        = WiFi.SSID().c_str();
         data.deviceName  = cfg.deviceName.c_str();
 
-        // Button
-        button->update();
-
         if (button->factoryReset()) {
             Serial.println("FACTORY RESET — wiping NVS...");
             buzzer->beepError();
@@ -391,6 +418,7 @@ void loop() {
             buzzer->beepShort();
             PortalModule portal;
             portal.begin();
+            oled->showPortal(portal.getApSsid().c_str());
             portal.runReconfigure();
             portal.saveToNVS();
             cfg.deviceName = portal.getDeviceName();

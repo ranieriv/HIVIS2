@@ -21,6 +21,22 @@ void DisplayModule::showSplash() {
     _u8g2.sendBuffer();
 }
 
+void DisplayModule::showPortal(const char* ssid) {
+    _screenOn = true;
+    _lastActivity = millis();
+    _u8g2.clearBuffer();
+    _u8g2.setFont(u8g2_font_helvB08_tr);
+    _u8g2.drawStr(2, 10, "-- Setup Portal --");
+    _u8g2.drawHLine(0, 13, 128);
+    _u8g2.setFont(u8g2_font_6x12_tr);
+    _u8g2.drawStr(2, 28, "Connect to WiFi:");
+    _u8g2.drawStr(2, 42, ssid);
+    _u8g2.drawHLine(0, 50, 128);
+    _u8g2.setFont(u8g2_font_5x8_tr);
+    _u8g2.drawStr(2, 58, "Open 192.168.4.1");
+    _u8g2.sendBuffer();
+}
+
 void DisplayModule::wake() {
     _screenOn     = true;
     _lastActivity = millis();

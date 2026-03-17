@@ -26,6 +26,7 @@ bool PortalModule::runReconfigure() {
 
 String PortalModule::getDeviceName() { return _deviceName; }
 String PortalModule::getMqttServer() { return _mqttServer; }
+String PortalModule::getApSsid()     { return _apSsid(); }
 
 void PortalModule::saveToNVS() {
     saveNVSIdentity(_mqttServer, _deviceName);

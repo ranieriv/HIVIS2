@@ -9,6 +9,7 @@ public:
 
     bool runFirstBoot();
     bool runReconfigure();
+    String getApSsid();
 
     String getDeviceName();
     String getMqttServer();

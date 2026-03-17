@@ -26,6 +26,9 @@ public:
     // Wake screen and reset auto-off timer
     void wake();
 
+    // Show captive portal instruction screen (static, for blocking portal mode)
+    void showPortal(const char* ssid);
+
     // Advance to next page (also wakes screen)
     void nextPage();
 
