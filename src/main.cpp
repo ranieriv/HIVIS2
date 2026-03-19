@@ -351,7 +351,7 @@ void loop() {
 
         // If broker keeps rejecting our credentials, re-provision after 5 minutes
         static unsigned long authFailSince = 0;
-        if (!mqtt->isConnected() && mqtt->lastState() == -5) {
+        if (!mqtt->isConnected() && mqtt->lastState() == 5) {
             if (authFailSince == 0) authFailSince = millis();
             if (millis() - authFailSince >= 5UL * 60UL * 1000UL) {
                 Serial.println("MQTT: persistent auth failure (5 min) — clearing credentials, rebooting...");
@@ -406,7 +406,7 @@ void loop() {
         data.deviceName  = cfg.deviceName.c_str();
 
         if (button->factoryReset()) {
-            Serial.println("FACTORY RESET — wiping NVS...");
+            Serial.println("BTN: factory reset — wiping NVS...");
             buzzer->beepError();
             delay(500);
             clearNVS();
@@ -414,7 +414,7 @@ void loop() {
         }
 
         if (button->longPressed()) {
-            Serial.println("Button: long press — reconfiguring...");
+            Serial.println("BTN: long press — reconfiguring...");
             buzzer->beepShort();
             PortalModule portal;
             portal.begin();
@@ -426,10 +426,12 @@ void loop() {
         }
 
         if (button->doublePressed()) {
+            Serial.println("BTN: double press — muting alert.");
             buzzer->stopAlert();
         }
 
         if (button->shortPressed()) {
+            Serial.println("BTN: short press — next page.");
             oled->nextPage();
             buzzer->beepShort();
         }
