@@ -2,7 +2,7 @@ apiVersion: 1
 
 datasources:
   - name: InfluxDB-hivis
-    uid: hivis-influxdb
+    uid: PA8DCAB329C51A876
     type: influxdb
     access: proxy
     url: http://influxdb:8086
@@ -12,5 +12,5 @@ datasources:
       defaultBucket: hivis
       tlsSkipVerify: true
     secureJsonData:
-      token: REPLACE_WITH_INFLUXDB_TOKEN
+      token: dad2bc0f8cd1fc00b3fd1d1e313c9d0984c77b258055de0f251ef903e6e89920
     isDefault: true

@@ -63,6 +63,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=hivishitech2026
       - GF_USERS_ALLOW_SIGN_UP=false
+      - TZ=America/Regina
+      - GF_DEFAULT_TIMEZONE=America/Regina
     depends_on:
       - influxdb
     networks:
