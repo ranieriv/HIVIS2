@@ -2,12 +2,17 @@
   "id": null,
   "uid": "hivis-per-device",
   "title": "HIVIS \u2014 Per-Device",
-  "tags": ["hivis"],
+  "tags": [
+    "hivis"
+  ],
   "timezone": "browser",
   "schemaVersion": 38,
   "version": 1,
   "refresh": "5s",
-  "time": { "from": "now-1h", "to": "now" },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "timepicker": {},
   "editable": true,
   "graphTooltip": 0,
@@ -16,7 +21,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -31,7 +39,10 @@
         "name": "device_id",
         "label": "Device",
         "type": "query",
-        "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "PA8DCAB329C51A876"
+        },
         "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"hivis\", tag: \"device_id\")",
         "definition": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"hivis\", tag: \"device_id\")",
         "refresh": 2,
@@ -49,25 +60,47 @@
       "id": 1,
       "type": "stat",
       "title": "IAQ",
-      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"iaq\")\n  |> last()"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"iaq\")\n  |> drop(columns: [\"backfill\"])\n  |> last()"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 200 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 200
+              }
             ]
           },
           "mappings": []
@@ -75,7 +108,13 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
@@ -87,25 +126,47 @@
       "id": 2,
       "type": "stat",
       "title": "CO\u2082",
-      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"co2\")\n  |> last()"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"co2\")\n  |> drop(columns: [\"backfill\"])\n  |> last()"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "ppm",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 800 },
-              { "color": "red", "value": 1500 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 800
+              },
+              {
+                "color": "red",
+                "value": 1500
+              }
             ]
           },
           "mappings": []
@@ -113,7 +174,13 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
@@ -125,25 +192,47 @@
       "id": 3,
       "type": "stat",
       "title": "Noise",
-      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"db\")\n  |> last()"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"db\")\n  |> drop(columns: [\"backfill\"])\n  |> last()"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "dB",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 65 },
-              { "color": "red", "value": 85 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 65
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
             ]
           },
           "mappings": []
@@ -151,7 +240,13 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
@@ -163,13 +258,24 @@
       "id": 4,
       "type": "gauge",
       "title": "Battery",
-      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bat_pct\")\n  |> last()"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bat_pct\")\n  |> drop(columns: [\"backfill\"])\n  |> last()"
         }
       ],
       "fieldConfig": {
@@ -177,13 +283,24 @@
           "unit": "percent",
           "min": 0,
           "max": 100,
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 20 },
-              { "color": "green", "value": 50 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "green",
+                "value": 50
+              }
             ]
           },
           "mappings": []
@@ -191,7 +308,13 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
         "orientation": "auto",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
@@ -201,25 +324,47 @@
       "id": 5,
       "type": "stat",
       "title": "WiFi RSSI",
-      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"rssi\")\n  |> last()"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"rssi\")\n  |> drop(columns: [\"backfill\"])\n  |> last()"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "dBm",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": -80 },
-              { "color": "green", "value": -60 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": -80
+              },
+              {
+                "color": "green",
+                "value": -60
+              }
             ]
           },
           "mappings": []
@@ -227,7 +372,13 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
@@ -239,35 +390,69 @@
       "id": 6,
       "type": "stat",
       "title": "BSEC Accuracy",
-      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"accuracy\")\n  |> last()"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"accuracy\")\n  |> drop(columns: [\"backfill\"])\n  |> last()"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "green", "value": 3 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
             ]
           },
           "mappings": [
             {
               "type": "value",
               "options": {
-                "0": { "text": "0 \u2014 Calibrating", "color": "red" },
-                "1": { "text": "1 \u2014 Low", "color": "orange" },
-                "2": { "text": "2 \u2014 Medium", "color": "yellow" },
-                "3": { "text": "3 \u2014 Optimal", "color": "green" }
+                "0": {
+                  "text": "0 \u2014 Calibrating",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "1 \u2014 Low",
+                  "color": "orange"
+                },
+                "2": {
+                  "text": "2 \u2014 Medium",
+                  "color": "yellow"
+                },
+                "3": {
+                  "text": "3 \u2014 Optimal",
+                  "color": "green"
+                }
               }
             }
           ]
@@ -275,7 +460,13 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
@@ -287,26 +478,53 @@
       "id": 7,
       "type": "timeseries",
       "title": "IAQ Over Time",
-      "gridPos": { "x": 0, "y": 4, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"iaq\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"iaq\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 200 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 200
+              }
             ]
           },
           "mappings": []
@@ -314,156 +532,299 @@
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 8,
       "type": "timeseries",
       "title": "CO\u2082 Over Time",
-      "gridPos": { "x": 8, "y": 4, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"co2\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"co2\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "ppm",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 9,
       "type": "timeseries",
       "title": "BVOC Over Time",
-      "gridPos": { "x": 16, "y": 4, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bvoc\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bvoc\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "ppm",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 10,
       "type": "timeseries",
       "title": "Temperature",
-      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"temp\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"temp\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "celsius",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 11,
       "type": "timeseries",
       "title": "Humidity",
-      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 8,
+        "y": 12,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"hum\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"hum\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "humidity",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 12,
       "type": "timeseries",
       "title": "Noise Level",
-      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 16,
+        "y": 12,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"db\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"db\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "dB",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 13,
       "type": "timeseries",
       "title": "Battery %",
-      "gridPos": { "x": 0, "y": 20, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bat_pct\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bat_pct\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
@@ -471,70 +832,134 @@
           "unit": "percent",
           "min": 0,
           "max": 100,
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 14,
       "type": "timeseries",
       "title": "Battery Voltage",
-      "gridPos": { "x": 8, "y": 20, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 8,
+        "y": 20,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bat_mv\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value / 1000.0 }))\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"bat_mv\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value / 1000.0 }))\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "volt",
           "decimals": 3,
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     },
     {
       "id": 15,
       "type": "timeseries",
       "title": "WiFi RSSI",
-      "gridPos": { "x": 16, "y": 20, "w": 8, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
+      "gridPos": {
+        "x": 16,
+        "y": 20,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "PA8DCAB329C51A876"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PA8DCAB329C51A876" },
-          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"rssi\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "datasource": {
+            "type": "influxdb",
+            "uid": "PA8DCAB329C51A876"
+          },
+          "query": "from(bucket: \"hivis\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"air_quality\")\n  |> filter(fn: (r) => r.device_id == \"${device_id}\")\n  |> filter(fn: (r) => r._field == \"rssi\")\n  |> drop(columns: [\"backfill\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "dBm",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "spanNulls": false, "showPoints": "auto" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "auto"
+          },
           "mappings": []
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       }
     }
   ]
