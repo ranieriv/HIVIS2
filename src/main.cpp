@@ -451,16 +451,19 @@ void loop() {
         oled->update(data, cfg.iaqWarn, cfg.iaqAlert);
 
         // ── MQTT publish tick ──────────────────────────────────────────────────
-        static unsigned long lastMqtt = 0;
-        if (millis() - lastMqtt >= (unsigned long)cfg.mqttIntervalMs) {
-            lastMqtt = millis();
+        static unsigned long lastMqtt        = 0;
+        static unsigned long lastOfflineStore = 0;
+        time_t ts = time(nullptr);
+        bool tsAccurate = (ts >= 1000000000UL);
 
-            time_t ts = time(nullptr);
-            bool tsAccurate = (ts >= 1000000000UL);
-
-            if (online && mqtt && mqtt->isConnected()) {
+        if (online && mqtt && mqtt->isConnected()) {
+            if (millis() - lastMqtt >= (unsigned long)cfg.mqttIntervalMs) {
+                lastMqtt = millis();
                 mqtt->publishSensor(data, ts, tsAccurate);
-            } else {
+            }
+        } else {
+            if (millis() - lastOfflineStore >= 60000UL) {
+                lastOfflineStore = millis();
                 OfflineBuffer::store(data);
             }
         }

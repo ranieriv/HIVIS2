@@ -34,7 +34,13 @@ bool MqttModule::connect() {
 }
 
 void MqttModule::loop() {
-    if (!_mqtt.connected()) _connectInternal();
+    if (!_mqtt.connected()) {
+        unsigned long now = millis();
+        if (now - _lastConnectAttempt >= RECONNECT_COOLDOWN_MS) {
+            _lastConnectAttempt = now;
+            _connectInternal();
+        }
+    }
     _mqtt.loop();
 }
 
@@ -43,22 +49,15 @@ void MqttModule::_connectInternal() {
     Serial.printf("MQTT: connecting to %s:%d as '%s'...",
                   _server.c_str(), _port, clientId.c_str());
 
-    for (int i = 0; i < 3; i++) {
-        bool ok;
-        if (_user.isEmpty()) {
-            ok = _mqtt.connect(clientId.c_str());
-        } else {
-            ok = _mqtt.connect(clientId.c_str(), _user.c_str(), _pass.c_str());
-        }
+    bool ok = _user.isEmpty()
+        ? _mqtt.connect(clientId.c_str())
+        : _mqtt.connect(clientId.c_str(), _user.c_str(), _pass.c_str());
 
-        if (ok) {
-            Serial.println(" OK");
-            return;
-        }
-        Serial.printf(" failed (state=%d), retry...\n", _mqtt.state());
-        delay(1000);
+    if (ok) {
+        Serial.println(" OK");
+    } else {
+        Serial.printf(" failed (state=%d)\n", _mqtt.state());
     }
-    Serial.println(" MQTT: could not connect.");
 }
 
 void MqttModule::_onMessage(char* topic, byte* payload, unsigned int len) {
@@ -84,7 +83,6 @@ void MqttModule::setMessageCallback(MqttMessageCallback cb) {
 // ── Publish helpers ───────────────────────────────────────────────────────────
 
 bool MqttModule::publishSensor(const DisplayData& data, time_t ts, bool tsAccurate) {
-    if (!_mqtt.connected()) _connectInternal();
     if (!_mqtt.connected()) return false;
     _mqtt.loop();
 
@@ -120,7 +118,6 @@ bool MqttModule::publishSensor(const DisplayData& data, time_t ts, bool tsAccura
 }
 
 bool MqttModule::publishRaw(const String& topic, const String& payload, int qos) {
-    if (!_mqtt.connected()) _connectInternal();
     if (!_mqtt.connected()) return false;
     _mqtt.loop();
 
@@ -135,7 +132,6 @@ bool MqttModule::publishRaw(const String& topic, const String& payload, int qos)
 }
 
 bool MqttModule::publishRegister(const String& mac, const String& deviceName) {
-    if (!_mqtt.connected()) _connectInternal();
     if (!_mqtt.connected()) return false;
     _mqtt.loop();
 

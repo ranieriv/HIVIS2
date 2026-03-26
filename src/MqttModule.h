@@ -45,4 +45,7 @@ private:
     void _connectInternal();
     static void _onMessage(char* topic, byte* payload, unsigned int len);
     static MqttModule* _instance;
+
+    unsigned long _lastConnectAttempt = 0;
+    static const unsigned long RECONNECT_COOLDOWN_MS = 5000;
 };
