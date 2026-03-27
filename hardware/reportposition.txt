@@ -1,0 +1,6 @@
+Front (top side) placement file: 'D:\Projects\hivis2\hardware\hivis2-top-pos.csv'.
+Info: Component count: 9.
+Back (bottom side) placement file: 'D:\Projects\hivis2\hardware\hivis2-bottom-pos.csv'.
+Info: Component count: 0.
+Info: Full component count: 9.
+Info: Done.

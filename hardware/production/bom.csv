@@ -1,0 +1,13 @@
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
+BZ1,Buzzer_TDK_PS1240P02BT_D12.2mm_H6.5mm,1,Buzzer,
+"C1, C2",0402,2,100nF,
+J1,BME688_Breakout_7pin,1,BME_688_Module,
+J2,INMP441_Breakout_8mm,1,INMP_441,
+J3,OLED_SSD1306_27x27,1,OLED Display,
+J4,J5019_Module,1,J5019_Module,
+J5,JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical,1,BATT JST,
+"R1, R2",0402,2,4.7K,
+"R3, R4",0402,2,100K,
+R5,0402,1,220,
+SW1,SW_PUSH_6mm,1,SW_Push,
+U1,ESP32_30pin,1,~,

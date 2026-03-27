@@ -1,0 +1,13 @@
+"Id";"Designator";"Footprint";"Quantity";"Designation";"Supplier and ref";
+1;"R5";"R_0402_1005Metric";1;"220";;;
+2;"R4,R3";"R_0402_1005Metric";2;"100K";;;
+3;"R2,R1";"R_0402_1005Metric";2;"4.7K";;;
+4;"C2,C1";"C_0402_1005Metric";2;"100nF";;;
+5;"U1";"ESP32_30pin";1;"~";;;
+6;"SW1";"SW_PUSH_6mm";1;"SW_Push";;;
+7;"BZ1";"Buzzer_TDK_PS1240P02BT_D12.2mm_H6.5mm";1;"Buzzer";;;
+8;"J4";"J5019_Module";1;"J5019_Module";;;
+9;"J5";"JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical";1;"BATT JST";;;
+10;"J1";"BME688_Breakout_7pin";1;"BME_688_Module";;;
+11;"J2";"INMP441_Breakout_8mm";1;"INMP_441";;;
+12;"J3";"OLED_SSD1306_27x27";1;"OLED Display";;;
