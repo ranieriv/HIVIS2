@@ -8,3 +8,5 @@ server/mosquitto/config/passwd
 server/mosquitto/certs/
 server/ota/whitelist.json
 server/ota/devices.json
+docs/credentials.md
+server-backups/
