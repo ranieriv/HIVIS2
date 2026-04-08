@@ -16,7 +16,10 @@ void OfflineBuffer::store(const DisplayData& data) {
         _dropOldest();
     }
 
-    File f = LittleFS.open(PATH, "a");
+    // Use "w" to create a new file; "a" to append to an existing one.
+    // LittleFS on ESP32 Arduino does not create files with "a" mode.
+    const char* mode = LittleFS.exists(PATH) ? "a" : "w";
+    File f = LittleFS.open(PATH, mode);
     if (!f) {
         Serial.println("OfflineBuffer: could not open for append.");
         return;
@@ -44,8 +47,6 @@ void OfflineBuffer::store(const DisplayData& data) {
 // ── count ─────────────────────────────────────────────────────────────────────
 
 int OfflineBuffer::count() {
-    if (!LittleFS.exists(PATH)) return 0;
-
     File f = LittleFS.open(PATH, "r");
     if (!f) return 0;
 

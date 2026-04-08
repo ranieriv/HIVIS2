@@ -98,10 +98,12 @@ static bool tryConnectWifi(int timeoutMs = 10000) {
     WiFi.mode(WIFI_STA);
     WiFi.begin(); // reconnect to last saved network (WiFiManager's creds)
     unsigned long t = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - t < (unsigned long)timeoutMs) {
+    while (millis() - t < (unsigned long)timeoutMs) {
+        if (WiFi.status() == WL_CONNECTED && WiFi.localIP() != IPAddress(0, 0, 0, 0))
+            return true;
         delay(200);
     }
-    return WiFi.status() == WL_CONNECTED;
+    return false;
 }
 
 static bool syncNtp(int timeoutMs = 5000) {
@@ -209,6 +211,19 @@ void setup() {
     Serial.print("1. Loading config... ");
     Serial.flush();
     loadConfig(cfg);
+    // Verify LittleFS is writable; reformat if not (can happen after crash loop)
+    {
+        File t = LittleFS.open("/.wcheck", "w");
+        if (!t) {
+            Serial.println("LittleFS not writable — reformatting...");
+            LittleFS.format();
+            LittleFS.begin();
+            loadConfig(cfg); // reload config.json after reformat
+        } else {
+            t.close();
+            LittleFS.remove("/.wcheck");
+        }
+    }
     Serial.println("OK");
     Serial.flush();
 
@@ -271,8 +286,7 @@ void setup() {
     // 6. Init sensors (before WiFi so BSEC starts warming up)
     Serial.print("4. Init BME688... ");
     bme = new BME688Module(cfg.bmeAddr, cfg.bsecSaveIntervalH);
-    bme->begin();
-    Serial.println("OK");
+    Serial.println(bme->begin() ? "OK" : "FAILED (no sensor data)");
 
     Serial.print("5. Init microphone... ");
     mic = new MicModule(cfg.micWS, cfg.micSCK, cfg.micSD, cfg.micLR, cfg.micCal);
@@ -338,6 +352,7 @@ void setup() {
     }
 
     buzzer->beepReady();
+    wasOnline = online; // prevent false "WiFi: reconnected" on first loop
     Serial.println("=== SYSTEM READY ===");
 }
 

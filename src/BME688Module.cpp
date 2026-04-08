@@ -16,10 +16,10 @@ BME688Module::BME688Module(uint8_t addr, int saveIntervalH)
     _saveIntervalMs = (uint32_t)saveIntervalH * 60UL * 60UL * 1000UL;
 }
 
-void BME688Module::begin() {
+bool BME688Module::begin() {
     if (!_envSensor.begin(_addr, Wire)) {
         Serial.println("BME688: begin() failed!");
-        return;
+        return false;
     }
     loadState();
 
@@ -33,9 +33,12 @@ void BME688Module::begin() {
     };
     _envSensor.updateSubscription(sensorList, 6, BSEC_SAMPLE_RATE_LP);
     _envSensor.attachCallback(newDataCallback);
+    _ok = true;
+    return true;
 }
 
 void BME688Module::update() {
+    if (!_ok) return;
     if (!_envSensor.run()) {
         if (_envSensor.status < BSEC_OK)
             Serial.printf("BSEC error: %d\n", _envSensor.status);

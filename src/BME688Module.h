@@ -8,8 +8,9 @@ class BME688Module {
 public:
     BME688Module(uint8_t addr, int saveIntervalH = 6);
 
-    void begin();
-    void update();
+    bool begin();   // returns true on success
+    void update();  // no-op if begin() failed
+    bool isOk() { return _ok; }
 
     float   getIAQ()      { return _iaq; }
     float   getCO2()      { return _co2; }
@@ -20,6 +21,7 @@ public:
 
 private:
     uint8_t _addr;
+    bool    _ok = false;
     Bsec2   _envSensor;
 
     static float    _iaq, _co2, _bvoc, _temp, _hum;
