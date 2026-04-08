@@ -73,28 +73,53 @@ void BME688Module::newDataCallback(const bme68xData data,
 }
 
 void BME688Module::loadState() {
-    if (!LittleFS.exists("/bsec_state.bin")) {
+    File f = LittleFS.open("/bsec_state.bin", "r");
+    if (!f) {
         Serial.println("BSEC: no saved state, starting fresh.");
         return;
     }
-    File f = LittleFS.open("/bsec_state.bin", "r");
-    if (f) {
-        uint8_t state[BSEC_MAX_STATE_BLOB_SIZE];
-        size_t  n = f.read(state, BSEC_MAX_STATE_BLOB_SIZE);
-        f.close();
-        if (n == BSEC_MAX_STATE_BLOB_SIZE && _envSensor.setState(state))
-            Serial.println("BSEC: state loaded.");
+
+    uint8_t  state[BSEC_MAX_STATE_BLOB_SIZE];
+    uint32_t storedCrc = 0;
+    size_t   n         = f.read(state, BSEC_MAX_STATE_BLOB_SIZE);
+    size_t   nc        = f.read((uint8_t*)&storedCrc, sizeof(storedCrc));
+    f.close();
+
+    if (n != BSEC_MAX_STATE_BLOB_SIZE || nc != sizeof(storedCrc)) {
+        Serial.println("BSEC: state file truncated — starting fresh.");
+        LittleFS.remove("/bsec_state.bin");
+        return;
     }
+
+    uint32_t calcCrc = crc32_le(0, state, BSEC_MAX_STATE_BLOB_SIZE);
+    if (calcCrc != storedCrc) {
+        Serial.printf("BSEC: state CRC mismatch (0x%08X vs 0x%08X) — starting fresh.\n",
+                      calcCrc, storedCrc);
+        LittleFS.remove("/bsec_state.bin");
+        return;
+    }
+
+    if (_envSensor.setState(state))
+        Serial.println("BSEC: state loaded OK.");
+    else
+        Serial.println("BSEC: setState() failed — starting fresh.");
 }
 
 void BME688Module::saveState() {
     uint8_t state[BSEC_MAX_STATE_BLOB_SIZE];
-    if (_envSensor.getState(state)) {
-        File f = LittleFS.open("/bsec_state.bin", "w");
-        if (f) {
-            f.write(state, BSEC_MAX_STATE_BLOB_SIZE);
-            f.close();
-            Serial.println("BSEC: state saved.");
-        }
+    if (!_envSensor.getState(state)) {
+        Serial.println("BSEC: getState() failed — not saved.");
+        return;
     }
+    uint32_t crc = crc32_le(0, state, BSEC_MAX_STATE_BLOB_SIZE);
+
+    File f = LittleFS.open("/bsec_state.bin", "w");
+    if (!f) {
+        Serial.println("BSEC: could not open state file for write.");
+        return;
+    }
+    f.write(state, BSEC_MAX_STATE_BLOB_SIZE);
+    f.write((uint8_t*)&crc, sizeof(crc));
+    f.close();
+    Serial.println("BSEC: state saved.");
 }

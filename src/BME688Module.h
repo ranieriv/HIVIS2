@@ -3,6 +3,7 @@
 #include <bsec2.h>
 #include <Wire.h>
 #include <LittleFS.h>
+#include <rom/crc.h>   // ESP32 ROM CRC32
 
 class BME688Module {
 public:

@@ -64,9 +64,9 @@ inline bool loadConfig(DeviceConfig &cfg) {
     cfg.micCal            = 115.0;
     cfg.refreshMs         = 1000;
     cfg.batteryPin        = 36;
-    cfg.batteryMinMv      = 330;
-    cfg.batteryMaxMv      = 420;
-    cfg.batteryMultiplier = 2.2f;
+    cfg.batteryMinMv      = 330;   // units: centivolt (0.01V) — 330 = 3.30V
+    cfg.batteryMaxMv      = 420;   // units: centivolt (0.01V) — 420 = 4.20V (1S LiPo)
+    cfg.batteryMultiplier = 2.2f;  // voltage divider ratio (ADC sees V/2.2)
     cfg.otaCheckIntervalH = 24;
     cfg.displayTimeoutMs  = 10000;
     cfg.buzzerEnabled     = true;
@@ -189,4 +189,29 @@ inline void clearNVS() {
     prefs.clear();
     prefs.end();
     Serial.println("NVS: cleared.");
+}
+
+// ── MQTT auth-fail reboot counter ────────────────────────────────────────────
+// Prevents infinite reboot loops when broker credentials are permanently wrong.
+// Counter is stored in NVS and cleared on each successful MQTT connection.
+inline int loadAuthRebootCount() {
+    Preferences prefs;
+    prefs.begin(NVS_NAMESPACE, true);
+    int c = prefs.getInt("auth_rbt_cnt", 0);
+    prefs.end();
+    return c;
+}
+
+inline void incrementAuthRebootCount() {
+    Preferences prefs;
+    prefs.begin(NVS_NAMESPACE, false);
+    prefs.putInt("auth_rbt_cnt", prefs.getInt("auth_rbt_cnt", 0) + 1);
+    prefs.end();
+}
+
+inline void clearAuthRebootCount() {
+    Preferences prefs;
+    prefs.begin(NVS_NAMESPACE, false);
+    prefs.putInt("auth_rbt_cnt", 0);
+    prefs.end();
 }

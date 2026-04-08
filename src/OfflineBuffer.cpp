@@ -47,6 +47,7 @@ void OfflineBuffer::store(const DisplayData& data) {
 // ── count ─────────────────────────────────────────────────────────────────────
 
 int OfflineBuffer::count() {
+    if (!LittleFS.exists(PATH)) return 0;
     File f = LittleFS.open(PATH, "r");
     if (!f) return 0;
 
@@ -150,6 +151,13 @@ void OfflineBuffer::_dropOldest() {
     src.close();
     tmp.close();
 
-    LittleFS.remove(PATH);
-    LittleFS.rename(tmpPath, PATH);
+    if (!LittleFS.remove(PATH)) {
+        Serial.println("OfflineBuffer: failed to remove old buffer — cleaning up.");
+        LittleFS.remove(tmpPath);
+        return;
+    }
+    if (!LittleFS.rename(tmpPath, PATH)) {
+        Serial.println("OfflineBuffer: failed to rename temp buffer — cleaning up.");
+        LittleFS.remove(tmpPath);
+    }
 }

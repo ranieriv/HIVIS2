@@ -30,6 +30,7 @@ float lastBatV   = 0.0f;
 
 // ── Debug WiFi ────────────────────────────────────────────────────────────────
 
+#ifdef DEBUG_WIFI
 static bool tryDebugWifi() {
     const char* nets[][2] = {
         { "SKYNET",  "WiFi2024" },
@@ -49,6 +50,7 @@ static bool tryDebugWifi() {
     }
     return false;
 }
+#endif
 
 // ── MAC helpers ───────────────────────────────────────────────────────────────
 
@@ -261,11 +263,15 @@ void setup() {
         bool hasSavedNetwork = (WiFi.SSID().length() > 0);
 
         if (!hasSavedNetwork || cfg.mqttServer.isEmpty()) {
-            // Try hardcoded debug networks before launching the portal
-            if (tryDebugWifi()) {
+            bool gotWifi = false;
+#ifdef DEBUG_WIFI
+            gotWifi = tryDebugWifi();
+            if (gotWifi) {
                 if (cfg.deviceName.isEmpty()) cfg.deviceName = deriveDeviceId();
                 if (cfg.mqttServer.isEmpty()) cfg.mqttServer = "mqtt.hvht.net";
-            } else {
+            }
+#endif
+            if (!gotWifi) {
                 Serial.println("3. First boot — launching captive portal...");
                 PortalModule portal;
                 portal.begin();
@@ -364,24 +370,36 @@ void loop() {
     if (mqtt) {
         mqtt->loop();
 
-        // If broker keeps rejecting our credentials, re-provision after 5 minutes
+        // If broker keeps rejecting our credentials, re-provision after 5 minutes.
+        // Capped at 5 reboots to prevent infinite reboot loops.
         static unsigned long authFailSince = 0;
         if (!mqtt->isConnected() && mqtt->lastState() == 5) {
             if (authFailSince == 0) authFailSince = millis();
             if (millis() - authFailSince >= 5UL * 60UL * 1000UL) {
-                Serial.println("MQTT: persistent auth failure (5 min) — clearing credentials, rebooting...");
-                buzzer->beepError();
-                delay(1000);
-                clearNVS();
-                ESP.restart();
+                int cnt = loadAuthRebootCount();
+                if (cnt >= 5) {
+                    Serial.printf("MQTT: auth failure — reboot limit reached (%d). "
+                                  "Staying offline, long-press to reconfigure.\n", cnt);
+                    authFailSince = millis(); // reset timer, keep trying periodically
+                } else {
+                    Serial.printf("MQTT: persistent auth failure (5 min) — clearing credentials, "
+                                  "rebooting... (attempt %d/5)\n", cnt + 1);
+                    buzzer->beepError();
+                    delay(1000);
+                    incrementAuthRebootCount();
+                    clearNVS();
+                    ESP.restart();
+                }
             }
         } else {
             authFailSince = 0;
+            if (mqtt->isConnected()) clearAuthRebootCount();
         }
     }
 
     // WiFi reconnect watchdog
-    bool nowOnline = (WiFi.status() == WL_CONNECTED);
+    bool nowOnline = (WiFi.status() == WL_CONNECTED &&
+                      WiFi.localIP() != IPAddress(0, 0, 0, 0));
     if (nowOnline && !wasOnline) {
         Serial.println("WiFi: reconnected.");
         buzzer->beepConnected();
