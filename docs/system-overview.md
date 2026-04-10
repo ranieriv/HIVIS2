@@ -145,10 +145,10 @@ Mosquitto: authenticated ✓
 
 **Add a new device to whitelist** (required before registration is approved):
 ```bash
-# On server:
-nano /opt/hivis/ota/whitelist.json
-# Also update Node-RED's copy:
-docker cp /opt/hivis/ota/whitelist.json hivis-nodered:/data/whitelist.json
+# Whitelist lives inside the Node-RED container — edit it directly:
+ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered nano /data/whitelist.json"
+# Add to the "devices" array:
+# { "mac": "AA:BB:CC:DD:EE:FF", "authorized": true, "group": "saskpoly", "notes": "Room X" }
 ```
 
 ---
@@ -251,10 +251,15 @@ URL: `http://172.16.1.156:3000`
 └── ota/
     ├── server.py
     ├── devices.json        ← OTA-approved MACs
-    ├── whitelist.json      ← Registration whitelist
     └── firmware/
         ├── latest.bin
         └── version.txt
+```
+
+**Node-RED container** (`hivis-nodered:/data/`):
+```
+/data/
+└── whitelist.json          ← Registration whitelist (MAC → authorized)
 ```
 
 ### Device (LittleFS)

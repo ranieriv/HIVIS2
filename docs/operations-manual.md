@@ -159,14 +159,14 @@ If you see `REJECTED` or no response after 30 s:
 
 1. Check whitelist:
 ```bash
-ssh mqttadmin@172.16.1.156 "cat /opt/hivis/ota/whitelist.json"
+ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered cat /data/whitelist.json"
 ```
 
-2. Add device MAC if missing:
+2. Add device MAC if missing (whitelist lives inside the Node-RED container):
 ```bash
-# Format: lowercase, no colons (e.g., 4cc382c32764)
-ssh mqttadmin@172.16.1.156 "nano /opt/hivis/ota/whitelist.json"
-ssh mqttadmin@172.16.1.156 "docker cp /opt/hivis/ota/whitelist.json hivis-nodered:/data/whitelist.json"
+ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered nano /data/whitelist.json"
+# Add to the "devices" array:
+# { "mac": "AA:BB:CC:DD:EE:FF", "authorized": true, "group": "saskpoly", "notes": "Room X" }
 ```
 
 3. Erase NVS to force re-registration (closes serial monitor first!):
@@ -355,19 +355,17 @@ curl http://172.16.1.156:8090/ota/version?mac=4cc382c32764
 # 1. Get the device MAC from serial monitor (printed at boot):
 #    MAC=4C:C3:82:C3:27:64  → use lowercase no-colon form: 4cc382c32764
 
-# 2. Add to whitelist on server
-ssh mqttadmin@172.16.1.156 "nano /opt/hivis/ota/whitelist.json"
-# Add: "4cc382c32764": { "approved": true, "notes": "Room 102" }
+# 2. Add to whitelist inside the Node-RED container
+ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered nano /data/whitelist.json"
+# Add to the "devices" array:
+# { "mac": "4C:C3:82:C3:27:64", "authorized": true, "group": "saskpoly", "notes": "Room 102" }
 
-# 3. Copy updated whitelist into Node-RED container
-ssh mqttadmin@172.16.1.156 \
-  "docker cp /opt/hivis/ota/whitelist.json hivis-nodered:/data/whitelist.json"
-
-# 4. Add to OTA approved list
+# 3. Add to OTA approved list
 ssh mqttadmin@172.16.1.156 "nano /opt/hivis/ota/devices.json"
-# Add: "4cc382c32764": { "ota_approved": true }
+# Add to the "devices" object:
+# "4cc382c32764": { "ota_approved": true, "notes": "Room 102 — 4C:C3:82:C3:27:64" }
 
-# 5. Power on device — it will auto-register and appear in Grafana within 1 minute
+# 4. Power on device — it will auto-register and appear in Grafana within 1 minute
 ```
 
 ---
