@@ -73,9 +73,13 @@ void BME688Module::newDataCallback(const bme68xData data,
 }
 
 void BME688Module::loadState() {
+    if (!LittleFS.exists("/bsec_state.bin")) {
+        Serial.println("BSEC: no saved state, starting fresh.");
+        return;
+    }
     File f = LittleFS.open("/bsec_state.bin", "r");
     if (!f) {
-        Serial.println("BSEC: no saved state, starting fresh.");
+        Serial.println("BSEC: state file unreadable — starting fresh.");
         return;
     }
 
