@@ -87,7 +87,7 @@ static void readBattery() {
     if (lastBatPrc < 0) {
         lastBatPrc = prc;
         lastBatV   = v;
-    } else if (prc <= lastBatPrc - 2) {
+    } else if (abs(prc - lastBatPrc) >= 2) {
         lastBatPrc = prc;
         lastBatV   = v;
     }
