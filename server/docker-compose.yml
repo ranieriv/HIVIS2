@@ -85,6 +85,36 @@ services:
     networks:
       - hivis-net
 
+  # ── Public website (nginx + certbot) ─────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: hivis-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./website:/usr/share/nginx/html:ro      # dashboard HTML
+      - ./nginx:/etc/nginx/conf.d:ro             # nginx config
+      - certbot-conf:/etc/letsencrypt:ro         # SSL certificate (read-only)
+      - certbot-www:/var/www/certbot:ro          # ACME webroot (read-only)
+    depends_on:
+      - influxdb
+    networks:
+      - hivis-net
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: hivis-certbot
+    restart: unless-stopped
+    volumes:
+      - certbot-conf:/etc/letsencrypt             # writes cert here
+      - certbot-www:/var/www/certbot              # ACME challenge files
+    # Renew every 12 hours (cert-bot checks whether renewal is actually needed)
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+    networks:
+      - hivis-net
+
 networks:
   hivis-net:
     driver: bridge
@@ -94,3 +124,5 @@ volumes:
   influxdb-data:
   influxdb-config:
   grafana-data:
+  certbot-conf:
+  certbot-www:
