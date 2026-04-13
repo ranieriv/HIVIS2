@@ -44,7 +44,7 @@ services:
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=hivishitech2026
+      - DOCKER_INFLUXDB_INIT_PASSWORD=REPLACE_WITH_SECURE_PASSWORD
       - DOCKER_INFLUXDB_INIT_ORG=hivis
       - DOCKER_INFLUXDB_INIT_BUCKET=hivis
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=REPLACE_WITH_GENERATED_TOKEN
@@ -61,7 +61,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=hivishitech2026
+      - GF_SECURITY_ADMIN_PASSWORD=REPLACE_WITH_SECURE_PASSWORD
       - GF_USERS_ALLOW_SIGN_UP=false
       - TZ=America/Regina
       - GF_DEFAULT_TIMEZONE=America/Regina

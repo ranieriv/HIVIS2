@@ -130,8 +130,8 @@ Once DNS is pointing at the server and port 80 is reachable externally:
 
 ```bash
 docker run -it --rm \
-  -v hivis_server_certbot-conf:/etc/letsencrypt \
-  -v hivis_server_certbot-www:/var/www/certbot \
+  -v hivis_certbot-conf:/etc/letsencrypt \
+  -v hivis_certbot-www:/var/www/certbot \
   certbot/certbot certonly --webroot \
     -w /var/www/certbot \
     -d hvht.net \
@@ -141,7 +141,7 @@ docker run -it --rm \
     --non-interactive
 
 # Verify cert was created
-docker run --rm -v hivis_server_certbot-conf:/etc/letsencrypt \
+docker run --rm -v hivis_certbot-conf:/etc/letsencrypt \
   alpine ls /etc/letsencrypt/live/hvht.net/
 # Expected: fullchain.pem  privkey.pem  cert.pem  chain.pem
 ```
@@ -188,9 +188,10 @@ echo | openssl s_client -servername hvht.net -connect hvht.net:443 2>/dev/null \
   | openssl x509 -noout -dates
 
 # InfluxDB proxy works (should return CSV data)
+# Use the read-only website token from docs/credentials.md
 curl -s -o /dev/null -w "%{http_code}" \
   -X POST "https://hvht.net/api/v2/query?org=hivis" \
-  -H "Authorization: Token uWjv9PW_WMP83kXETwxu9qjp2dqCp1mQRhtywSRzAhKYshYcER1Pb4WzvMg42-WSLORkNr3gTA4xVaqrZww0Ww==" \
+  -H "Authorization: Token <INFLUX_WEBSITE_READONLY_TOKEN>" \
   -H "Content-Type: application/vnd.flux" \
   -d 'from(bucket:"hivis") |> range(start:-1m) |> limit(n:1)'
 # Expected: 200
@@ -265,13 +266,13 @@ docker compose exec nginx wget -qO- http://influxdb:8086/health
 
 ```bash
 # Check cert validity
-docker run --rm -v hivis_server_certbot-conf:/etc/letsencrypt \
+docker run --rm -v hivis_certbot-conf:/etc/letsencrypt \
   alpine ls -la /etc/letsencrypt/live/hvht.net/
 
 # Force manual renewal
 docker run -it --rm \
-  -v hivis_server_certbot-conf:/etc/letsencrypt \
-  -v hivis_server_certbot-www:/var/www/certbot \
+  -v hivis_certbot-conf:/etc/letsencrypt \
+  -v hivis_certbot-www:/var/www/certbot \
   certbot/certbot renew --webroot -w /var/www/certbot --force-renewal
 ```
 
@@ -286,7 +287,7 @@ docker run -it --rm \
 
 ---
 
-## Showcase Checklist (April 15)
+## Showcase Checklist
 
 - [ ] `docker compose ps` — all 7 containers running (mosquitto, nodered, influxdb, grafana, ota, nginx, certbot)
 - [ ] `curl -I https://hvht.net` — 200 OK
@@ -306,7 +307,7 @@ tar -czf ~/hivis-website-$(date +%Y%m%d).tar.gz /opt/hivis/server/website/
 
 # SSL certificates
 docker run --rm \
-  -v hivis_server_certbot-conf:/etc/letsencrypt \
+  -v hivis_certbot-conf:/etc/letsencrypt \
   -v ~/backups:/backup \
   alpine tar -czf /backup/hivis-certs-$(date +%Y%m%d).tar.gz /etc/letsencrypt
 ```

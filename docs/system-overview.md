@@ -1,8 +1,9 @@
 # HIVIS Monitor 2.0 — System Documentation
 
-**Version:** 2.0.1
+**Version:** 2.0.2
 **Hardware:** ESP32 DOIT DevKit V1 + BME688 + INMP441
 **Server:** Lenovo ThinkPad X200 · Ubuntu · 172.16.1.156
+**Public website:** https://hvht.net
 
 ---
 
@@ -26,7 +27,15 @@
 │  │  OTA Server  │                    │    Grafana        │  │
 │  │  :8090       │                    │    :3000          │  │
 │  └──────────────┘                    └───────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Nginx (HTTPS :443 / HTTP :80 → redirect)            │   │
+│  │  Serves https://hvht.net — static dashboard +        │   │
+│  │  proxies /api/v2/query → InfluxDB (internal only)    │   │
+│  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
+                   ▲
+                   │ HTTPS :443
+         Browser (any network) — https://hvht.net
 ```
 
 ---
@@ -38,8 +47,10 @@
 | `hivis-mosquitto` | eclipse-mosquitto:latest | **8883** | MQTT broker (TLS only) |
 | `hivis-nodered` | nodered/node-red:latest | **1880** | Data routing & provisioning |
 | `hivis-influxdb` | influxdb:2 | **8086** | Time-series database |
-| `hivis-grafana` | grafana/grafana:latest | **3000** | Dashboards |
+| `hivis-grafana` | grafana/grafana:latest | **3000** | Dashboards (LAN only) |
 | `hivis-ota` | python:3.11-slim | **8090** | Firmware update server |
+| `hivis-nginx` | nginx:alpine | **80, 443** | Public website (https://hvht.net) + InfluxDB proxy |
+| `hivis-certbot` | certbot/certbot:latest | — | Let's Encrypt cert auto-renewal (12h loop) |
 
 **Manage all services:**
 ```bash
@@ -74,7 +85,7 @@ docker compose logs -f      # live logs
 
 ```
 Device (unprovisioned)
-  │ CONNECT  user=hivis_bootstrap  pass=hivishitech2026
+  │ CONNECT  user=hivis_bootstrap  pass=<see credentials.md>
   ▼
 Mosquitto ──→ Node-RED
   │              │ Check whitelist.json
@@ -139,8 +150,8 @@ Mosquitto: authenticated ✓
 
 | User | Password | Access |
 |------|----------|--------|
-| `hivis_bootstrap` | `hivishitech2026` | Write hivis/register, Read hivis/provision/+ |
-| `nodered_bridge` | (encrypted in Node-RED) | Read/Write hivis/# |
+| `hivis_bootstrap` | *(see docs/credentials.md)* | Write hivis/register, Read hivis/provision/+ |
+| `nodered_bridge` | *(encrypted in Node-RED)* | Read/Write hivis/# |
 | `device_[mac]` | Auto-generated | Write hivis/hivis-[mac]/#, Read hivis/provision/[mac] |
 
 **Add a new device to whitelist** (required before registration is approved):
@@ -230,12 +241,34 @@ python -m esptool --port COM7 erase_region 0x9000 0x5000
 | Per Device | `/d/hivis-perdevice` | Single device — live gauges + history |
 | Historical | `/d/hivis-historical` | 7-day trends, backfill annotation |
 
-Login: `admin` / `hivishitech2026`
+Login: `admin` / *(see docs/credentials.md)*
 URL: `http://172.16.1.156:3000`
 
 ---
 
-## 12. Key File Locations
+## 12. Public Website (https://hvht.net)
+
+The live dashboard is served by Nginx from `server/website/index.html`.
+
+| Item | Detail |
+|------|--------|
+| URL | https://hvht.net |
+| Source file | `server/website/index.html` |
+| SSL cert | Let's Encrypt via certbot — expires 2026-07-12, auto-renews |
+| InfluxDB access | Read-only token; queries proxied through `/api/v2/query` (InfluxDB port 8086 is never exposed externally) |
+| Nginx configs | `server/nginx/hivis.conf` (production HTTPS), `server/nginx/http-only.conf` (bootstrap only), `server/nginx/local.conf` (local dev) |
+| Auto-refresh | Every 10 seconds |
+
+**Update the dashboard:**
+```bash
+# Edit server/website/index.html locally, then copy to server:
+scp server/website/index.html mqttadmin@mqttserver:/opt/hivis/website/
+# No Nginx restart needed — served directly from volume mount.
+```
+
+---
+
+## 13. Key File Locations
 
 ### Server (`/opt/hivis/`)
 ```
@@ -244,16 +277,32 @@ URL: `http://172.16.1.156:3000`
 ├── mosquitto/
 │   ├── config/
 │   │   ├── mosquitto.conf
-│   │   ├── passwd          ← Mosquitto user hashes
+│   │   ├── passwd          ← Mosquitto user hashes (chmod 644, owned root)
 │   │   └── acl             ← Topic access control
-│   ├── certs/              ← TLS cert (mqtt.hvht.net)
+│   ├── certs/              ← TLS cert (mqtt.hvht.net, self-signed)
 │   └── log/mosquitto.log
+├── website/
+│   └── index.html          ← Public dashboard (https://hvht.net)
+├── nginx/
+│   ├── hivis.conf          ← Production HTTPS config (active)
+│   ├── http-only.conf.disabled  ← Bootstrap config (inactive)
+│   └── local.conf.disabled ← Local dev config (inactive)
 └── ota/
     ├── server.py
     ├── devices.json        ← OTA-approved MACs
     └── firmware/
         ├── latest.bin
         └── version.txt
+```
+
+**Docker volumes (managed by Docker):**
+```
+hivis_certbot-conf   ← /etc/letsencrypt (Let's Encrypt cert files)
+hivis_certbot-www    ← /var/www/certbot (ACME webroot)
+hivis_nodered-data   ← Node-RED flows and config
+hivis_influxdb-data  ← InfluxDB time-series data
+hivis_influxdb-config
+hivis_grafana-data
 ```
 
 **Node-RED container** (`hivis-nodered:/data/`):

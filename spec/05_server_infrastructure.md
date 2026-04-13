@@ -19,8 +19,10 @@ A single `docker-compose.yml` defines the entire stack.
 | Mosquitto | `hivis-mosquitto` | 8883 | MQTT broker (TLS) |
 | Node-RED | `hivis-nodered` | 1880 | MQTT → InfluxDB routing + registration |
 | InfluxDB 2.x | `hivis-influxdb` | 8086 | Time-series storage |
-| Grafana | `hivis-grafana` | 3000 | Dashboards |
+| Grafana | `hivis-grafana` | 3000 | Dashboards (LAN only) |
 | OTA Server | `hivis-ota` | 8090 | Firmware delivery |
+| Nginx | `hivis-nginx` | 80, 443 | Public website (https://hvht.net) + InfluxDB proxy |
+| Certbot | `hivis-certbot` | — | Let's Encrypt SSL cert auto-renewal |
 
 ---
 
@@ -73,7 +75,7 @@ services:
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=hivishitech2026
+      - DOCKER_INFLUXDB_INIT_PASSWORD=REPLACE_WITH_SECURE_PASSWORD
       - DOCKER_INFLUXDB_INIT_ORG=hivis
       - DOCKER_INFLUXDB_INIT_BUCKET=hivis
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=REPLACE_WITH_GENERATED_TOKEN
@@ -90,7 +92,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=hivishitech2026
+      - GF_SECURITY_ADMIN_PASSWORD=REPLACE_WITH_SECURE_PASSWORD
       - GF_USERS_ALLOW_SIGN_UP=false
     depends_on:
       - influxdb
@@ -110,6 +112,34 @@ services:
     networks:
       - hivis-net
 
+  nginx:
+    image: nginx:alpine
+    container_name: hivis-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./website:/usr/share/nginx/html:ro
+      - ./nginx:/etc/nginx/conf.d:ro
+      - certbot-conf:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+    depends_on:
+      - influxdb
+    networks:
+      - hivis-net
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: hivis-certbot
+    restart: unless-stopped
+    volumes:
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+    networks:
+      - hivis-net
+
 networks:
   hivis-net:
     driver: bridge
@@ -119,9 +149,11 @@ volumes:
   influxdb-data:
   influxdb-config:
   grafana-data:
+  certbot-conf:
+  certbot-www:
 ```
 
-**Important:** Change `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN` and all default passwords before deploying.
+**Important:** Replace all `REPLACE_WITH_*` placeholders before deploying. See `docs/credentials.md` for the running deployment's values.
 
 ---
 
@@ -374,8 +406,11 @@ datasources:
 
 ## Security Notes
 
-- All services are on an internal Docker bridge network (`hivis-net`). Only the ports listed are exposed to the host.
-- Grafana and Node-RED UIs are LAN/Tailscale only. Do not expose port 1880 or 3000 to the internet.
-- Mosquitto port 8883 is the only port that needs to be internet-accessible (via `mqtt.hvht.net`).
+- All services are on an internal Docker bridge network (`hivis-net`). Only ports listed are exposed to the host.
+- **Internet-facing ports:** 80 (HTTP→redirect), 443 (HTTPS dashboard), 8883 (MQTT TLS for devices). All others are LAN only.
+- Grafana (:3000) and Node-RED (:1880) must NOT be exposed to the internet — Node-RED allows arbitrary code execution.
+- InfluxDB (:8086) is accessed by the website exclusively through the Nginx `/api/v2/query` proxy. The website uses a **read-only token** — the admin token is never exposed publicly.
+- Mosquitto `passwd` file must be owned by root, permissions `644`. If sudo operations reset it to `rwx------`, Mosquitto will crash with exit code 13. Fix: `chmod 644` via a root Docker exec.
+- The OTA server mounts the Docker socket (`/var/run/docker.sock`) to call `mosquitto_passwd` during provisioning — this gives it full Docker host control. Acceptable for this deployment; restrict in higher-security environments.
 - Existing Tailscale + fail2ban setup on the X200 continues to apply.
-- Change all default passwords in `docker-compose.yml` before first run.
+- Replace all `REPLACE_WITH_*` placeholders and use unique passwords before deploying.

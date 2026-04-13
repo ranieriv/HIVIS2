@@ -12,10 +12,10 @@
     "bsec_save_interval_h": 6
   },
   "mic": {
-    "pin_ws":  12,
+    "pin_ws": 12,
     "pin_sck": 14,
-    "pin_sd":  26,
-    "pin_lr":  13,
+    "pin_sd": 26,
+    "pin_lr": 13,
     "cal": 115.0
   },
   "misc": {
@@ -32,7 +32,7 @@
     "timeout_ms": 0
   },
   "buzzer": {
-    "enabled": true,
+    "enabled": false,
     "pin": 25
   },
   "button": {

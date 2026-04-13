@@ -1,8 +1,9 @@
 # HIVIS Monitor 2.0 — Operations Manual
 
-**Version:** 2.0.1
-**Server:** 172.16.1.156 (ssh mqttadmin@172.16.1.156)
-**Grafana:** http://172.16.1.156:3000 (admin / hivishitech2026)
+**Version:** 2.0.2
+**Server:** 172.16.1.156 (ssh mqttadmin@172.16.1.156 or ssh mqttadmin@mqttserver)
+**Grafana:** http://172.16.1.156:3000 — credentials in docs/credentials.md
+**Public dashboard:** https://hvht.net
 
 ---
 
@@ -16,7 +17,7 @@ Run this whenever you want to confirm the system is alive.
 ssh mqttadmin@172.16.1.156 "cd /opt/hivis && docker compose ps"
 ```
 
-**Expected:** All 5 containers show `Up` (or `running`).
+**Expected:** All 7 containers show `Up` (or `running`).
 
 | Container | Status |
 |-----------|--------|
@@ -25,6 +26,8 @@ ssh mqttadmin@172.16.1.156 "cd /opt/hivis && docker compose ps"
 | hivis-influxdb | Up |
 | hivis-grafana | Up |
 | hivis-ota | Up |
+| hivis-nginx | Up |
+| hivis-certbot | Up |
 
 **If a container is down:**
 ```bash
@@ -33,7 +36,18 @@ cd /opt/hivis && docker compose up -d <service-name>
 
 ---
 
-### QC-2 · Grafana shows live data
+### QC-2 · Public dashboard (https://hvht.net)
+
+1. Open https://hvht.net in any browser (works from external networks)
+2. Device cards should appear within 10 seconds showing live sensor readings
+3. Click a card → charts should render with 1h/6h/24h range options
+4. Check for the SSL padlock — certificate is valid
+
+**If cards don't appear:** jump to Full Check → FC-5.
+
+---
+
+### QC-3 · Grafana shows live data (LAN only)
 
 1. Open http://172.16.1.156:3000
 2. Go to **Fleet Overview** dashboard (`/d/hivis-fleet`)
@@ -43,7 +57,7 @@ cd /opt/hivis && docker compose up -d <service-name>
 
 ---
 
-### QC-3 · Device serial output (if device is connected to PC)
+### QC-4 · Device serial output (if device is connected to PC)
 
 Open PlatformIO serial monitor at 115200 baud. You should see lines like:
 
@@ -60,7 +74,7 @@ IAQ:75.2 Hum:45.3% Temp:22.5°C CO2:412 BVOC:0.52 dB:65.3 Acc:3 Bat:85%(3.85V) O
 
 ---
 
-### QC-4 · OLED display
+### QC-5 · OLED display
 
 The device OLED should show sensor readings continuously (no blank screen).
 Press the button (GPIO 0) briefly to cycle through the 3 pages:
@@ -221,7 +235,62 @@ If it fails:
 
 ---
 
-### FC-7 · OTA server
+### FC-7 · Nginx website + SSL
+
+**Check HTTPS is reachable and serving the dashboard:**
+```bash
+curl -I https://hvht.net
+# Expected: HTTP/2 200, server: nginx/...
+```
+
+**Check HTTP redirects to HTTPS:**
+```bash
+curl -I http://hvht.net
+# Expected: 301 → https://hvht.net
+```
+
+**Check SSL certificate expiry:**
+```bash
+echo | openssl s_client -servername hvht.net -connect hvht.net:443 2>/dev/null \
+  | openssl x509 -noout -dates
+# notAfter should be 2026-07-12 or later (certbot renews automatically)
+```
+
+**Check InfluxDB proxy through Nginx (no auth error = proxy works):**
+```bash
+curl -s -o /dev/null -w "%{http_code}" \
+  -X POST "https://hvht.net/api/v2/query?org=hivis" \
+  -H "Authorization: Token <website-readonly-token>" \
+  -H "Content-Type: application/vnd.flux" \
+  -d 'from(bucket:"hivis") |> range(start:-1m) |> limit(n:1)'
+# Expected: 200
+```
+
+**If Nginx is down:**
+```bash
+ssh mqttadmin@mqttserver "cd /opt/hivis && docker compose up -d nginx"
+docker logs hivis-nginx --tail 30   # check for config errors
+```
+
+**If SSL cert is missing or expired:**
+```bash
+# Force renewal manually
+ssh mqttadmin@mqttserver "docker exec hivis-certbot certbot renew --force-renewal"
+docker exec hivis-nginx nginx -s reload
+```
+
+**Common nginx permission problem (passwd file):**
+```bash
+# If Mosquitto crashes with exit code 13 after any sudo operation:
+ssh mqttadmin@mqttserver "docker run --rm --user root \
+  -v /opt/hivis/mosquitto/config:/mosquitto/config \
+  eclipse-mosquitto:latest chmod 644 /mosquitto/config/passwd"
+cd /opt/hivis && docker compose up -d mosquitto
+```
+
+---
+
+### FC-8 · OTA server
 
 **Check version endpoint:**
 ```bash
@@ -250,7 +319,7 @@ Look for `GET /ota/version` and `POST /provision` entries.
 
 ---
 
-### FC-8 · Display / OLED always-on check
+### FC-9 · Display / OLED always-on check
 
 Verify `config.json` has `timeout_ms` set to 0:
 
@@ -275,7 +344,7 @@ pio run --target uploadfs
 
 ---
 
-### FC-9 · BSEC2 calibration status
+### FC-10 · BSEC2 calibration status
 
 BSEC2 takes ~30 minutes to reach accuracy 3 on first boot. After that, calibration is saved to `/littlefs/bsec_state.bin` every 6 hours.
 
@@ -293,7 +362,7 @@ After calibration file is saved, reboots skip the 30-minute warmup.
 
 ---
 
-### FC-10 · End-to-end data flow verification
+### FC-11 · End-to-end data flow verification
 
 This confirms data flows all the way from sensor to Grafana.
 
@@ -385,18 +454,24 @@ ssh mqttadmin@172.16.1.156 "nano /opt/hivis/ota/devices.json"
 | Screen blank / display off | `timeout_ms` non-zero | Set `timeout_ms: 0` in config.json, re-upload FS |
 | Factory reset triggered accidentally | GPIO 0 held > 5s during boot | Avoid pressing GPIO 0 at boot |
 | `fetch is not defined` in Node-RED | Node-RED doesn't expose global fetch | Use `global.get('http')` with functionGlobalContext |
+| Mosquitto exits with code 13 | `passwd` file owned by root (unreadable) | `docker run --rm --user root -v /opt/hivis/mosquitto/config:/mosquitto/config eclipse-mosquitto:latest chmod 644 /mosquitto/config/passwd` |
+| https://hvht.net shows 502 | InfluxDB container down | `docker compose up -d influxdb` |
+| https://hvht.net shows stale data | MQTT/Node-RED pipeline interrupted | Check FC-5, FC-11 |
 
 ---
 
 ## Key Credentials
 
-| Service | Username | Password |
-|---------|----------|----------|
-| Grafana | `admin` | `hivishitech2026` |
-| MQTT bootstrap (unregistered devices) | `hivis_bootstrap` | `hivishitech2026` |
-| SSH server | `mqttadmin` | (your SSH key) |
-| InfluxDB admin | `admin` | (set during InfluxDB setup) |
+See `docs/credentials.md` (gitignored — not committed to repo).
+
+| Service | Username | Where to find password |
+|---------|----------|----------------------|
+| Grafana | `admin` | docs/credentials.md |
+| MQTT bootstrap | `hivis_bootstrap` | docs/credentials.md |
+| SSH server | `mqttadmin` | SSH key auth |
+| InfluxDB admin | `admin` | docs/credentials.md |
+| InfluxDB website token | *(read-only)* | docs/credentials.md |
 
 ---
 
-*Last updated: 2026-03-15 · HIVIS Monitor 2.0.1*
+*Last updated: 2026-04-13 · HIVIS Monitor 2.0.2*

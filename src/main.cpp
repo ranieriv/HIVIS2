@@ -332,8 +332,9 @@ void setup() {
         mqtt->connect();
 
         // Flush any offline data
-        if (OfflineBuffer::count() > 0) {
-            Serial.printf("9. Flushing %d offline records...\n", OfflineBuffer::count());
+        int buffered = OfflineBuffer::count();
+        if (buffered > 0) {
+            Serial.printf("9. Flushing %d offline records...\n", buffered);
             OfflineBuffer::flush(*mqtt, time(nullptr), cfg.mqttIntervalMs,
                                  cfg.deviceId, cfg.deviceName);
         }
@@ -406,8 +407,9 @@ void loop() {
         syncNtp();
         if (mqtt) {
             mqtt->connect();
-            if (OfflineBuffer::count() > 0) {
-                Serial.printf("Flushing %d buffered records...\n", OfflineBuffer::count());
+            int buffered = OfflineBuffer::count();
+            if (buffered > 0) {
+                Serial.printf("Flushing %d buffered records...\n", buffered);
                 OfflineBuffer::flush(*mqtt, time(nullptr), cfg.mqttIntervalMs,
                                      cfg.deviceId, cfg.deviceName);
             }
