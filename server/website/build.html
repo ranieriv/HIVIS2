@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Build — HIVIS Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --black: #0a0a0a;
+        --dark: #111111;
+        --surface: #141414;
+        --surface2: #1a1a1a;
+        --border: rgba(255, 255, 255, 0.08);
+        --yellow: #fbbf24;
+        --yellow-dim: rgba(251, 191, 36, 0.12);
+        --green: #a7f3d0;
+        --green-dim: rgba(167, 243, 208, 0.1);
+        --text: #e8e8e8;
+        --muted: #777;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Lora", Georgia, serif;
+        background: var(--black);
+        color: var(--text);
+        line-height: 1.75;
+        overflow-x: hidden;
+      }
+
+      /* NAV */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.2rem 3rem;
+        background: rgba(10, 10, 10, 0.9);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-logo {
+        font-family: "Syne", sans-serif;
+        font-weight: 800;
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+        background: linear-gradient(90deg, var(--yellow), var(--green));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-decoration: none;
+      }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+      .nav-links a {
+        font-family: "Syne", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        color: var(--muted);
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: color 0.3s;
+      }
+      .nav-links a:hover,
+      .nav-links a.active {
+        color: var(--yellow);
+      }
+
+      /* HERO */
+      .hero {
+        padding: 140px 3rem 80px;
+        max-width: 1100px;
+        margin: 0 auto;
+        animation: fadeUp 0.9s ease both;
+      }
+      .hero-eyebrow {
+        font-family: "Syne", sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--yellow);
+        margin-bottom: 1.5rem;
+      }
+      .hero h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(3rem, 6vw, 6rem);
+        font-weight: 800;
+        line-height: 0.95;
+        color: #fff;
+        margin-bottom: 2rem;
+      }
+      .hero h1 em {
+        color: var(--yellow);
+        font-style: normal;
+      }
+      .hero-desc {
+        font-size: 1.15rem;
+        color: var(--muted);
+        max-width: 600px;
+        line-height: 1.7;
+        font-style: italic;
+      }
+
+      /* HERO STRIP */
+      .hero-strip {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        height: 240px;
+        gap: 3px;
+        overflow: hidden;
+      }
+      .hero-strip img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(0.7) grayscale(20%);
+        transition: filter 0.4s;
+      }
+      .hero-strip img:hover {
+        filter: brightness(1) grayscale(0);
+      }
+
+      /* PHASE SECTIONS */
+      .phase {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 6rem 3rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .phase-header {
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        gap: 2rem;
+        margin-bottom: 4rem;
+        align-items: start;
+      }
+      .phase-number {
+        font-family: "Syne", sans-serif;
+        font-size: 4rem;
+        font-weight: 800;
+        color: var(--yellow);
+        opacity: 0.25;
+        line-height: 1;
+        padding-top: 0.2rem;
+      }
+      .phase-meta {
+      }
+      .phase-tag {
+        font-family: "Syne", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--yellow);
+        margin-bottom: 0.75rem;
+      }
+      .phase-title {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(1.8rem, 3vw, 2.8rem);
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+      }
+      .phase-subtitle {
+        font-family: "Lora", serif;
+        font-style: italic;
+        font-size: 1rem;
+        color: var(--muted);
+      }
+
+      /* TWO COL */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: start;
+      }
+      .two-col.reverse {
+      }
+      .two-col p {
+        font-size: 1rem;
+        color: var(--text);
+        opacity: 0.85;
+        margin-bottom: 1.25rem;
+      }
+      .two-col h3 {
+        font-family: "Syne", sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+      }
+      .two-col h3:first-child {
+        margin-top: 0;
+      }
+
+      /* PHOTO BLOCK */
+      .photo-block {
+        position: relative;
+      }
+      .photo-block img {
+        width: 100%;
+        border-radius: 4px;
+        object-fit: cover;
+        display: block;
+        max-height: 420px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      }
+      .photo-block .caption {
+        margin-top: 0.75rem;
+        font-family: "Syne", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .photo-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .photo-pair img {
+        width: 100%;
+        border-radius: 4px;
+        object-fit: cover;
+        height: 200px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+
+      /* SPEC TABLE */
+      .spec-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+      }
+      .spec-table tr {
+        border-bottom: 1px solid var(--border);
+      }
+      .spec-table td {
+        padding: 0.8rem 0;
+        font-size: 0.9rem;
+      }
+      .spec-table td:first-child {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--yellow);
+        width: 35%;
+      }
+      .spec-table td:last-child {
+        color: var(--muted);
+      }
+
+      /* STACK CARDS */
+      .stack-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .stack-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 1.5rem;
+        transition:
+          border-color 0.3s,
+          transform 0.3s;
+      }
+      .stack-card:hover {
+        border-color: var(--green);
+        transform: translateY(-3px);
+      }
+      .stack-card-name {
+        font-family: "Syne", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.3rem;
+      }
+      .stack-card-role {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .stack-card-tag {
+        display: inline-block;
+        margin-top: 0.8rem;
+        font-family: "Syne", sans-serif;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 0.2rem 0.6rem;
+        background: var(--green-dim);
+        color: var(--green);
+        border-radius: 2px;
+      }
+
+      /* HIGHLIGHT QUOTE */
+      .pull-quote {
+        border-left: 3px solid var(--yellow);
+        padding: 1.5rem 2rem;
+        margin: 2rem 0;
+        background: var(--yellow-dim);
+        border-radius: 0 4px 4px 0;
+      }
+      .pull-quote p {
+        font-style: italic;
+        font-size: 1.05rem;
+        color: #fff;
+        opacity: 1 !important;
+        margin: 0 !important;
+      }
+
+      /* PCB SECTION */
+      .pcb-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+      }
+      .pcb-grid img {
+        width: 100%;
+        border-radius: 4px;
+        object-fit: cover;
+        height: 220px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+
+      /* CTA */
+      .cta-section {
+        text-align: center;
+        padding: 6rem 3rem;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+      .cta-section h2 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 1rem;
+      }
+      .cta-section p {
+        color: var(--muted);
+        font-size: 1rem;
+        margin-bottom: 2.5rem;
+      }
+      .btn {
+        font-family: "Syne", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        text-decoration: none;
+        padding: 0.85rem 2rem;
+        border-radius: 2px;
+        transition: all 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .btn-primary {
+        background: var(--yellow);
+        color: #000;
+      }
+      .btn-primary:hover {
+        background: #fff;
+      }
+      .btn-ghost {
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      .btn-ghost:hover {
+        border-color: var(--yellow);
+        color: var(--yellow);
+      }
+      .btn-gap {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      footer {
+        padding: 2rem 3rem;
+        text-align: center;
+        font-family: "Syne", sans-serif;
+        font-size: 0.75rem;
+        color: var(--muted);
+        letter-spacing: 1px;
+        border-top: 1px solid var(--border);
+      }
+      footer a {
+        color: var(--yellow);
+        text-decoration: none;
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 900px) {
+        .hero {
+          padding: 120px 1.5rem 4rem;
+        }
+        .phase {
+          padding: 4rem 1.5rem;
+        }
+        .two-col {
+          grid-template-columns: 1fr;
+          gap: 2.5rem;
+        }
+        .photo-pair {
+          grid-template-columns: 1fr;
+        }
+        .pcb-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .hero-strip {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .hero-strip img:nth-child(n + 4) {
+          display: none;
+        }
+        nav {
+          padding: 1rem 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a href="/" class="nav-logo">HIVIS MONITOR</a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/build.html" class="active">The Build</a></li>
+      </ul>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+      <p class="hero-eyebrow">From breadboard to wearable IoT device</p>
+      <h1>The <em>Build</em><br />Journal</h1>
+      <p class="hero-desc">
+        A complete record of how HIVIS Monitor was designed, prototyped,
+        rebuilt, and shipped — hardware, firmware, and infrastructure.
+      </p>
+    </div>
+
+    <!-- IMAGE STRIP -->
+    <div class="hero-strip">
+      <img src="images/HIVIS_Breadboard.jpg" alt="Breadboard prototype" />
+      <img src="images/HIVIS_V1_2_.jpg" alt="HIVIS V1 PCB" />
+      <img src="images/Version_Battery.jpg" alt="Version with battery" />
+      <img src="images/HIVIS_V1.jpg" alt="HIVIS Monitor V1 enclosure" />
+      <img src="images/External_Battery.jpg" alt="HIVIS 2 final" />
+    </div>
+
+    <!-- PHASE 1: CONCEPT & BREADBOARD -->
+    <div class="phase">
+      <div class="phase-header reveal">
+        <div class="phase-number">01</div>
+        <div class="phase-meta">
+          <div class="phase-tag">Phase 1 · Hardware</div>
+          <h2 class="phase-title">Proof of Concept</h2>
+          <p class="phase-subtitle">
+            Start with what you have. Prove the idea works.
+          </p>
+        </div>
+      </div>
+
+      <div class="two-col reveal">
+        <div>
+          <h3>The Question That Started It</h3>
+          <p>
+            Working near furnaces and in basements, I kept wondering: is the air
+            around me safe? Commercial IAQ monitors exist — but they're
+            expensive, cloud-dependent, and designed for offices. Not for the
+            worker with tools on their belt.
+          </p>
+          <p>
+            The first step was proving that affordable sensors could give
+            meaningful readings. Everything started on a breadboard: an ESP32
+            DoIt DevKit V1, a Bosch BME688 air quality sensor, an INMP441 MEMS
+            microphone for sound level, an SSD1306 OLED display, and a J5019
+            charger/boost module for battery power.
+          </p>
+          <div class="pull-quote">
+            <p>
+              "eCO₂ gives a ventilation picture, bVOC gives a chemical exposure
+              picture, and both combine into the IAQ score as a single
+              actionable number on the OLED."
+            </p>
+          </div>
+          <h3>Key Components</h3>
+          <table class="spec-table">
+            <tr>
+              <td>MCU</td>
+              <td>ESP32 DoIt DevKit V1 (30-pin)</td>
+            </tr>
+            <tr>
+              <td>Air Quality</td>
+              <td>Bosch BME688 — temp, humidity, pressure, gas (MOX)</td>
+            </tr>
+            <tr>
+              <td>Acoustics</td>
+              <td>INMP441 I2S MEMS microphone</td>
+            </tr>
+            <tr>
+              <td>Display</td>
+              <td>SSD1306 0.96" OLED (I2C)</td>
+            </tr>
+            <tr>
+              <td>Power</td>
+              <td>J5019 charger/boost + LiPo battery</td>
+            </tr>
+          </table>
+        </div>
+        <div class="photo-block">
+          <img
+            src="images/HIVIS_Breadboard.jpg"
+            alt="Full breadboard prototype with all components wired"
+          />
+          <p class="caption">First prototype — all components on breadboard</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2: V1 HARDWARE -->
+    <div class="phase" style="background: var(--surface)">
+      <div class="phase-header reveal">
+        <div class="phase-number">02</div>
+        <div class="phase-meta">
+          <div class="phase-tag">Phase 2 · Hardware</div>
+          <h2 class="phase-title">HIVIS Monitor V1</h2>
+          <p class="phase-subtitle">
+            Moving off the breadboard. First real form factor.
+          </p>
+        </div>
+      </div>
+
+      <div class="two-col reveal">
+        <div class="photo-block">
+          <img
+            src="images/HIVIS_V1_2_.jpg"
+            alt="HIVIS V1 custom PCB close-up"
+          />
+          <p class="caption">
+            Custom perfboard layout — first permanent assembly
+          </p>
+        </div>
+        <div>
+          <h3>From Prototype to Device</h3>
+          <p>
+            The breadboard proved the concept. The next step was making it a
+            real device — something that could be worn, powered from a battery,
+            and used on a job site.
+          </p>
+          <p>
+            Version 1 moved from loose jumper wires to a structured layout on a
+            prototyping board. This is where the physical design language
+            started taking shape: small footprint, OLED facing up for quick
+            glance reads, single button for all interactions.
+          </p>
+          <h3>V1 Lessons</h3>
+          <p>
+            The red button was too large. The battery connector was awkward. The
+            board was thicker than it needed to be. But the core system —
+            sensor, display, button, buzzer — worked exactly as intended. V1
+            validated the form factor.
+          </p>
+          <div class="photo-block" style="margin-top: 1.5rem">
+            <img
+              src="images/IMG_7131.png"
+              alt="V1 with battery attached showing live OLED readings"
+            />
+            <p class="caption">
+              V1 powered up — OLED showing live IAQ, eCO₂, sound data
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 3: FIRMWARE -->
+    <div class="phase">
+      <div class="phase-header reveal">
+        <div class="phase-number">03</div>
+        <div class="phase-meta">
+          <div class="phase-tag">Phase 3 · Firmware</div>
+          <h2 class="phase-title">Firmware Architecture</h2>
+          <p class="phase-subtitle">
+            WiFi provisioning, encrypted credentials, OTA updates, offline
+            buffering.
+          </p>
+        </div>
+      </div>
+
+      <div class="two-col reveal">
+        <div>
+          <h3>Design Principles</h3>
+          <p>
+            The firmware was built around one clear rule: separate secrets from
+            configuration. Credentials (WiFi, MQTT) live in an AES-128 CBC
+            encrypted
+            <code
+              style="
+                font-family: monospace;
+                color: var(--yellow);
+                font-size: 0.9rem;
+              "
+              >credentials.json</code
+            >. All hardware parameters live in a plain
+            <code
+              style="
+                font-family: monospace;
+                color: var(--yellow);
+                font-size: 0.9rem;
+              "
+              >config.json</code
+            >
+            that field technicians can adjust.
+          </p>
+          <h3>Key Features</h3>
+          <table class="spec-table">
+            <tr>
+              <td>Provisioning</td>
+              <td>WiFiManager captive portal — first boot</td>
+            </tr>
+            <tr>
+              <td>Security</td>
+              <td>AES-128 CBC encrypted credentials + SecureVault</td>
+            </tr>
+            <tr>
+              <td>Connectivity</td>
+              <td>MQTT over TLS, auto local/external server switching</td>
+            </tr>
+            <tr>
+              <td>Offline</td>
+              <td>LittleFS NDJSON buffering with approximate timestamps</td>
+            </tr>
+            <tr>
+              <td>OTA</td>
+              <td>HTTP polling with per-device approval flag</td>
+            </tr>
+            <tr>
+              <td>UI</td>
+              <td>Single button — short / long / double / 5s-hold gestures</td>
+            </tr>
+            <tr>
+              <td>Calibration</td>
+              <td>BSEC2 NVS persistence across reboots</td>
+            </tr>
+          </table>
+        </div>
+        <div>
+          <h3>The Button Gesture System</h3>
+          <p>
+            One of the most interesting firmware challenges was building a
+            complete UI with a single tactile button. Short press, long press,
+            double press, and a 5-second hold — each triggers a distinct action
+            with a unique piezo tone. Users cycle through display screens,
+            trigger manual uploads, or enter provisioning mode without ever
+            connecting a computer.
+          </p>
+          <div class="pull-quote">
+            <p>
+              "The gap between planning and actually getting things done — HIVIS
+              Monitor taught me why both matter equally."
+            </p>
+          </div>
+          <h3>Sensor Intelligence</h3>
+          <p>
+            The BME688 uses Bosch's BSEC2 library for intelligent gas sensing.
+            Because it's a metal oxide sensor, it can't selectively detect
+            specific gases like H₂S or CO — it responds to a broad range of
+            volatile compounds. This is a known limitation, not a flaw. The IAQ
+            score reflects air quality broadly, not a specific chemical
+            concentration.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 4: SERVER STACK -->
+    <div class="phase" style="background: var(--surface)">
+      <div class="phase-header reveal">
+        <div class="phase-number">04</div>
+        <div class="phase-meta">
+          <div class="phase-tag">Phase 4 · Infrastructure</div>
+          <h2 class="phase-title">Server Stack</h2>
+          <p class="phase-subtitle">
+            Self-hosted. Privacy-first. Runs on a repurposed ThinkPad.
+          </p>
+        </div>
+      </div>
+
+      <div class="two-col reveal">
+        <div>
+          <h3>The Philosophy</h3>
+          <p>
+            Commercial IoT platforms send your data to a cloud you don't
+            control. HIVIS Monitor runs entirely on a self-hosted server — a
+            Lenovo ThinkPad X200 on Ubuntu Server, running the full stack in
+            Docker containers.
+          </p>
+          <p>
+            Data flows from the ESP32 → MQTT broker → Node-RED → InfluxDB, then
+            displayed in Grafana. Remote access via Tailscale. External MQTT at
+            <em>mqtt.hvht.net</em>
+            with TLS. Nightly backups to OneDrive via rclone.
+          </p>
+          <h3>Stack</h3>
+          <div class="stack-grid">
+            <div class="stack-card">
+              <div class="stack-card-name">Mosquitto</div>
+              <div class="stack-card-role">MQTT broker — TLS on port 8883</div>
+              <span class="stack-card-tag">Transport</span>
+            </div>
+            <div class="stack-card">
+              <div class="stack-card-name">Node-RED</div>
+              <div class="stack-card-role">Data pipeline & routing</div>
+              <span class="stack-card-tag">Processing</span>
+            </div>
+            <div class="stack-card">
+              <div class="stack-card-name">InfluxDB 2.x</div>
+              <div class="stack-card-role">Time-series database</div>
+              <span class="stack-card-tag">Storage</span>
+            </div>
+            <div class="stack-card">
+              <div class="stack-card-name">Grafana</div>
+              <div class="stack-card-role">
+                3 dashboards — per-device, fleet, historical
+              </div>
+              <span class="stack-card-tag">Visualization</span>
+            </div>
+            <div class="stack-card">
+              <div class="stack-card-name">Tailscale</div>
+              <div class="stack-card-role">Secure remote access</div>
+              <span class="stack-card-tag">Networking</span>
+            </div>
+            <div class="stack-card">
+              <div class="stack-card-name">rclone</div>
+              <div class="stack-card-role">
+                Nightly OneDrive backup, 7-day retention
+              </div>
+              <span class="stack-card-tag">Backup</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3>The Dashboards</h3>
+          <p>
+            Three Grafana dashboards are provisioned and available live at
+            hvht.net:
+          </p>
+          <table class="spec-table">
+            <tr>
+              <td>Per-Device</td>
+              <td>5s refresh · individual device readings, trends</td>
+            </tr>
+            <tr>
+              <td>Fleet</td>
+              <td>30s refresh · all devices, overview status</td>
+            </tr>
+            <tr>
+              <td>Historical</td>
+              <td>5m refresh · long-term exposure analysis</td>
+            </tr>
+          </table>
+          <div class="pull-quote" style="margin-top: 2rem">
+            <p>
+              "There's a reason certified sensors cost what they do. Building
+              this taught me how complete systems are actually made."
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 5: CUSTOM PCB -->
+    <div class="phase">
+      <div class="phase-header reveal">
+        <div class="phase-number">05</div>
+        <div class="phase-meta">
+          <div class="phase-tag">Phase 5 · PCB Design</div>
+          <h2 class="phase-title">Custom PCB</h2>
+          <p class="phase-subtitle">
+            KiCad 8. 70×50mm 2-layer board. Fabricated by JLCPCB.
+          </p>
+        </div>
+      </div>
+
+      <div class="two-col reveal">
+        <div class="photo-block">
+          <img src="images/IMG_7128.jpg" alt="Custom PCB bare board" />
+          <p class="caption">
+            Custom 70×50mm 2-layer PCB — all components placed
+          </p>
+        </div>
+        <div>
+          <h3>Why Design a PCB</h3>
+          <p>
+            Prototyping boards work — but they're thick, fragile, and hard to
+            reproduce. A custom PCB meant a device that could be manufactured
+            consistently, fitted precisely into a printed enclosure, and
+            assembled with SMD components.
+          </p>
+          <p>
+            The board was designed in KiCad 8 with ESP32 on the back copper
+            layer and all other components on the front. JLCPCB handled both
+            bare fabrication and SMD assembly of passive components.
+          </p>
+          <h3>PCB Specs</h3>
+          <table class="spec-table">
+            <tr>
+              <td>Size</td>
+              <td>70 × 50 mm</td>
+            </tr>
+            <tr>
+              <td>Layers</td>
+              <td>2 (F.Cu + B.Cu)</td>
+            </tr>
+            <tr>
+              <td>MCU</td>
+              <td>ESP32 DoIt DevKit on B.Cu</td>
+            </tr>
+            <tr>
+              <td>Design Tool</td>
+              <td>KiCad 8 + FreeRouting autorouter</td>
+            </tr>
+            <tr>
+              <td>Fabrication</td>
+              <td>JLCPCB (bare PCB + SMD assembly)</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="pcb-grid reveal" style="margin-top: 3rem">
+        <div class="photo-block">
+          <img src="images/HIVIS_V1_2_.jpg" alt="Early PCB version" />
+          <p class="caption">Early PCB iteration</p>
+        </div>
+        <div class="photo-block">
+          <img src="images/Version_Battery.jpg" alt="PCB with battery live" />
+          <p class="caption">PCB powered, live data</p>
+        </div>
+        <div class="photo-block">
+          <img src="images/IMG_7128.jpg" alt="Final custom board" />
+          <p class="caption">Final board layout</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 6: HIVIS 2 -->
+    <div class="phase" style="background: var(--surface); border-bottom: none">
+      <div class="phase-header reveal">
+        <div class="phase-number">06</div>
+        <div class="phase-meta">
+          <div class="phase-tag">Phase 6 · Final Device</div>
+          <h2 class="phase-title">HIVIS Monitor 2.0</h2>
+          <p class="phase-subtitle">
+            Multi-device fleet. 3D-printed enclosure. Showcase ready.
+          </p>
+        </div>
+      </div>
+
+      <!-- VIDEO -->
+      <div class="reveal" style="margin-bottom: 3rem">
+        <div
+          style="
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 4px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+          "
+        >
+          <iframe
+            src="https://www.youtube.com/embed/ifhsAFTemFM"
+            title="HIVIS Monitor — 3D Printing the Enclosure"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              border: none;
+            "
+            allow="
+              accelerometer;
+              autoplay;
+              clipboard-write;
+              encrypted-media;
+              gyroscope;
+              picture-in-picture;
+            "
+            allowfullscreen
+          >
+          </iframe>
+        </div>
+        <p
+          style="
+            font-family: &quot;Syne&quot;, sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 0.75rem;
+          "
+        >
+          3D printing the custom enclosure
+        </p>
+      </div>
+
+      <div class="two-col reveal">
+        <div>
+          <h3>From One to Many</h3>
+          <p>
+            HIVIS Monitor 2.0 is not just a better device — it's a scalable
+            system. The architecture supports up to 10 simultaneous devices,
+            each publishing to the same server, each visible in the fleet
+            dashboard with its own device ID.
+          </p>
+          <p>
+            The enclosure is 3D-printed. The board is custom-fabricated. The
+            firmware handles first-boot provisioning, encrypted credentials,
+            automatic network switching, OTA updates, and offline buffering
+            without any user configuration beyond the initial captive portal
+            setup.
+          </p>
+          <h3>Showcase Demo</h3>
+          <p>
+            The May 4th showcase will run three active devices over a phone
+            hotspot, all reporting live to the server. Visitors can see real
+            readings — IAQ scores, eCO₂ ppm, bVOC, temperature, humidity,
+            pressure, sound level — on the fleet dashboard and per-device cards.
+          </p>
+        </div>
+        <div>
+          <div class="photo-block">
+            <img
+              src="images/External_Battery.jpg"
+              alt="HIVIS Monitor 2.0 final device"
+            />
+            <p class="caption">
+              HIVIS 2.0 — final form factor, 3D-printed enclosure
+            </p>
+          </div>
+          <div class="photo-block" style="margin-top: 1rem">
+            <img
+              src="images/Version_Battery.jpg"
+              alt="HIVIS 2.0 showing live readings on OLED"
+            />
+            <p class="caption">Live readings: IAQ 51 · eCO₂ 505ppm · 75.3 dB</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section reveal">
+      <h2>See it live.</h2>
+      <p>
+        The full fleet dashboard is running right now at hvht.net — real
+        devices, real data.
+      </p>
+      <div class="btn-gap">
+        <a href="/" class="btn btn-primary">View Live Dashboard →</a>
+        <a href="/about.html" class="btn btn-ghost">About Rani</a>
+        <a
+          href="https://github.com/ranieriv"
+          class="btn btn-ghost"
+          target="_blank"
+          >GitHub</a
+        >
+      </div>
+    </div>
+
+    <footer>
+      <p>© 2026 Ranieri Vilela · <a href="/">HIVIS Monitor</a> · hvht.net</p>
+    </footer>
+
+    <script>
+      const reveals = document.querySelectorAll(".reveal");
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e, i) => {
+            if (e.isIntersecting) {
+              setTimeout(() => e.target.classList.add("visible"), i * 100);
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.1 },
+      );
+      reveals.forEach((el) => io.observe(el));
+    </script>
+  </body>
+</html>

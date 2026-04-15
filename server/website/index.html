@@ -14,6 +14,7 @@
       color: #ffffff;
       line-height: 1.6;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* ── HEADER ── */
@@ -92,12 +93,62 @@
 
     /* ── HERO ── */
     .hero {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-      align-items: center;
-      padding: 4rem 0;
+      position: relative;
+      /* Break out of main's max-width */
+      width: 100vw;
+      left: 50%;
+      transform: translateX(-50%);
+      min-height: 620px;
+      overflow: hidden;
       border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+    }
+
+    /* Gradient: opaque dark left → transparent right so woman is visible */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg,
+        rgba(13,17,23,0.97) 0%,
+        rgba(13,17,23,0.88) 30%,
+        rgba(13,17,23,0.50) 55%,
+        rgba(13,17,23,0.10) 80%,
+        rgba(13,17,23,0.00) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Image fills the full hero area */
+    .hero-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      background: none;
+      overflow: hidden;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: 65% center;
+    }
+
+    /* Text sits over the gradient on the left */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+      min-height: 620px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5rem 2rem;
+      margin-left: max(2rem, calc((100vw - 1400px) / 2 + 2rem));
     }
 
     .hero-content h1 {
@@ -116,7 +167,7 @@
 
     .hero-content p {
       font-size: 16px;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.85);
       margin-bottom: 2rem;
       line-height: 1.8;
     }
@@ -159,21 +210,6 @@
     .secondary-btn:hover {
       background: rgba(167, 243, 208, 0.1);
       transform: translateY(-2px);
-    }
-
-    .hero-image {
-      width: 100%;
-      border-radius: 12px;
-      border: 2px solid rgba(251, 191, 36, 0.3);
-      overflow: hidden;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .hero-image img {
-      width: 100%;
-      height: auto;
-      display: block;
-      object-fit: cover;
     }
 
     /* ── ABOUT / SDG ── */
@@ -530,23 +566,267 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      .hero { grid-template-columns: 1fr; }
+      /* Hero: revert to stacked layout */
+      .hero {
+        width: 100%;
+        left: 0;
+        transform: none;
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .hero::before { display: none; }
+      .hero-content {
+        position: static;
+        max-width: 100%;
+        min-height: auto;
+        padding: 2rem;
+        margin-left: 0;
+        display: block;
+      }
+      .hero-content h1 { font-size: 32px; }
+      .hero-image {
+        position: static;
+        width: 100%;
+        height: 260px;
+        border-radius: 12px;
+        border: 2px solid rgba(251, 191, 36, 0.3);
+        margin: 0 0 2rem;
+        overflow: hidden;
+      }
+      .hero-image img {
+        object-position: center center;
+      }
+      /* Other responsive */
       .fleet-overview { grid-template-columns: 1fr; }
       .device-metrics-grid { grid-template-columns: 1fr; }
       .devices-grid { grid-template-columns: 1fr; }
-      .hero-content h1 { font-size: 32px; }
       .nav-links { display: none; }
     }
+
+    /* ── PROJECT DESCRIPTION ── */
+    .project-description {
+      padding: 80px 20px;
+      max-width: 860px;
+      margin: 0 auto;
+      border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+    }
+    .project-description h2 {
+      font-size: 2rem;
+      margin-bottom: 24px;
+      color: #a7f3d0;
+    }
+    .project-description p {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 18px;
+    }
+    .project-stats {
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+      margin-top: 48px;
+      padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .stat { display: flex; flex-direction: column; gap: 6px; }
+    .stat-number {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #a7f3d0;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    /* ── SDG TILES ── */
+    .sdg-grid {
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+    .sdg-item { text-align: center; }
+    .sdg-link {
+      text-decoration: none;
+      display: block;
+      position: relative;
+    }
+    .sdg-link:hover .sdg-tile {
+      transform: scale(1.04);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+    }
+    .sdg-tile {
+      width: 190px;
+      height: 190px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 14px 10px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    /* Top row: icon right-aligned */
+    .sdg-tile-top {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      flex: 1;
+    }
+    .sdg-icon {
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
+    }
+    /* Number sits below icon area, left-aligned */
+    .sdg-number {
+      font-size: 64px;
+      font-weight: 900;
+      color: white;
+      line-height: 1;
+      letter-spacing: -2px;
+      text-align: left;
+      margin-bottom: 4px;
+    }
+    /* Title bar at the bottom */
+    .sdg-label {
+      font-size: 8.5px;
+      font-weight: 700;
+      color: white;
+      text-align: left;
+      line-height: 1.25;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-top: 6px;
+      border-top: 1.5px solid rgba(255,255,255,0.4);
+    }
+    .sdg-3  { background-color: #4CA146; }
+    .sdg-8  { background-color: #A31C44; }
+    .sdg-9  { background-color: #F26A2D; }
+    /* Label below the tile */
+    .sdg-item > div {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 10px;
+    }
+
+    /* Tooltip */
+    .sdg-tooltip {
+      position: absolute;
+      bottom: calc(100% + 12px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13,17,23,0.97);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.9);
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 10px 14px;
+      border-radius: 6px;
+      width: 200px;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s ease;
+      white-space: normal;
+      z-index: 20;
+    }
+    .sdg-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: rgba(13,17,23,0.97);
+    }
+    .sdg-link:hover .sdg-tooltip { opacity: 1; }
+
+    /* ── COMPONENT CARDS ── */
+    .component-link { text-decoration: none; }
+    .component-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 14px;
+      cursor: pointer;
+      max-width: 300px;
+      width: 100%;
+      transition: box-shadow 0.25s ease, transform 0.25s ease;
+    }
+    .component-card:hover {
+      box-shadow: 0 0 0 2px #a7f3d0, 0 12px 40px rgba(167,243,208,0.15);
+      transform: translateY(-5px);
+    }
+    .component-img { width: 100%; display: block; border-radius: 14px; }
+    .component-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.80);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      border-radius: 14px;
+    }
+    .component-card:hover .component-overlay { opacity: 1; }
+    .component-overlay p {
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+      margin: 0;
+    }
+    .component-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      margin-top: 12px;
+    }
+    .component-sublabel {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4px;
+    }
+
+    /* ── FOOTER INSTITUTION ── */
+    .footer-institution {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .footer-logo { height: 36px; opacity: 0.85; }
+    .footer-institution a { color: #a7f3d0; text-decoration: none; }
+    .footer-institution a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <header>
     <div class="header-content">
-      <div class="logo">HIVIS Monitor 2.0</div>
+      <a href="/" class="logo" style="text-decoration:none;">
+          <img src="images/HIVIS_LOGO_1.png" alt="HIVIS Monitor Logo"
+               style="height:36px;vertical-align:middle;margin-right:10px;"
+               onerror="this.style.display='none'">HIVIS Monitor 2.0</a>
       <div class="header-right">
         <nav class="nav-links">
           <a href="#about">About</a>
           <a href="#dashboard">Dashboard</a>
+          <a href="about.html">About Me</a>
         </nav>
         <div class="live-indicator">
           <div class="live-dot ok" id="live-dot"></div>
@@ -574,7 +854,49 @@
         </div>
       </div>
       <div class="hero-image">
-        <img src="./HIVIS_Worker_2.png" alt="HIVIS Monitor in use">
+        <img src="images/HIVIS_Worker_Extended2.png" alt="HIVIS Monitor in use">
+      </div>
+    </section>
+
+    <!-- ── PROJECT DESCRIPTION ── -->
+    <section id="about-section" class="project-description">
+      <div>
+        <h2>About the Project</h2>
+        <p>
+          HIVIS Monitor is a wearable IoT system designed for indoor air quality and acoustic
+          monitoring in trades and industrial workplaces. The device fits inside a standard
+          hi-vis safety vest and continuously measures IAQ score, eCO₂, bVOC gas index,
+          temperature, humidity, and noise levels.
+        </p>
+        <p>
+          Built on the ESP32 microcontroller with a Bosch BME688 environmental sensor and
+          an INMP441 MEMS microphone, each device publishes data every 3 seconds to a
+          self-hosted server stack — Mosquitto MQTT, Node-RED, InfluxDB, and Grafana —
+          all running on a single machine on-site.
+        </p>
+        <p>
+          The system is fully self-hosted and privacy-respecting. No data leaves your
+          network. Workers get real-time air quality feedback on the device OLED display;
+          supervisors see the full fleet view on the live dashboard below.
+        </p>
+        <div class="project-stats">
+          <div class="stat">
+            <span class="stat-number">3s</span>
+            <span class="stat-label">Sensor update interval</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">10+</span>
+            <span class="stat-label">Devices supported</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">5</span>
+            <span class="stat-label">Air quality metrics</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Self-hosted &amp; private</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -586,18 +908,90 @@
       </div>
 
       <div class="sdg-grid">
+
+        <!-- SDG 3 — Good Health & Well-being -->
         <div class="sdg-item">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 150'%3E%3Crect fill='%2345B882' width='150' height='150' rx='8'/%3E%3Ctext x='75' y='60' font-size='52' font-weight='bold' fill='white' text-anchor='middle'%3E3%3C/text%3E%3Ctext x='75' y='95' font-size='11' font-weight='bold' fill='white' text-anchor='middle'%3EGOOD HEALTH%3C/text%3E%3Ctext x='75' y='112' font-size='11' font-weight='bold' fill='white' text-anchor='middle'%3EAND WELL-BEING%3C/text%3E%3C/svg%3E" alt="SDG 3">
+          <a href="https://sdgs.un.org/goals/goal3" target="_blank" rel="noopener noreferrer" class="sdg-link">
+            <div class="sdg-tile sdg-3">
+              <div class="sdg-tile-top">
+                <!-- Heart with ECG pulse line -->
+                <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
+                  <path d="M40 66 C40 66 10 48 10 26 C10 16 17 9 26 9 C31.5 9 36.5 12 40 17 C43.5 12 48.5 9 54 9 C63 9 70 16 70 26 C70 48 40 66 40 66Z"
+                        fill="rgba(255,255,255,0.18)" stroke="white" stroke-width="3" stroke-linejoin="round"/>
+                  <path d="M18 36 L25 36 L29 26 L33 46 L37 32 L40 36 L47 36 L52 36"
+                        stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="sdg-number">3</span>
+              <span class="sdg-label">GOOD HEALTH AND WELL-BEING</span>
+            </div>
+            <span class="sdg-tooltip">Ensure healthy lives and promote well-being for all at all ages</span>
+          </a>
           <div>Good Health &amp; Well-being</div>
         </div>
+
+        <!-- SDG 8 — Decent Work & Economic Growth -->
         <div class="sdg-item">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 150'%3E%3Crect fill='%23A21E48' width='150' height='150' rx='8'/%3E%3Ctext x='75' y='60' font-size='52' font-weight='bold' fill='white' text-anchor='middle'%3E8%3C/text%3E%3Ctext x='75' y='95' font-size='11' font-weight='bold' fill='white' text-anchor='middle'%3EDECENT WORK AND%3C/text%3E%3Ctext x='75' y='112' font-size='11' font-weight='bold' fill='white' text-anchor='middle'%3EECONOMIC GROWTH%3C/text%3E%3C/svg%3E" alt="SDG 8">
+          <a href="https://sdgs.un.org/goals/goal8" target="_blank" rel="noopener noreferrer" class="sdg-link">
+            <div class="sdg-tile sdg-8">
+              <div class="sdg-tile-top">
+                <!-- Rising bar chart with upward arrow -->
+                <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
+                  <rect x="8"  y="54" width="14" height="18" rx="2" fill="white" opacity="0.9"/>
+                  <rect x="28" y="40" width="14" height="32" rx="2" fill="white" opacity="0.9"/>
+                  <rect x="48" y="24" width="14" height="48" rx="2" fill="white" opacity="0.9"/>
+                  <path d="M14 56 L36 40 L56 24" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                  <path d="M48 10 L66 10 L66 28" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <line x1="56" y1="24" x2="66" y2="10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span class="sdg-number">8</span>
+              <span class="sdg-label">DECENT WORK AND ECONOMIC GROWTH</span>
+            </div>
+            <span class="sdg-tooltip">Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all</span>
+          </a>
           <div>Decent Work &amp; Economic Growth</div>
         </div>
+
+        <!-- SDG 9 — Industry, Innovation & Infrastructure -->
         <div class="sdg-item">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 150'%3E%3Crect fill='%23DD6E42' width='150' height='150' rx='8'/%3E%3Ctext x='75' y='60' font-size='52' font-weight='bold' fill='white' text-anchor='middle'%3E9%3C/text%3E%3Ctext x='75' y='95' font-size='11' font-weight='bold' fill='white' text-anchor='middle'%3EINDUSTRY%2C INNOVATION%3C/text%3E%3Ctext x='75' y='112' font-size='11' font-weight='bold' fill='white' text-anchor='middle'%3EAND INFRASTRUCTURE%3C/text%3E%3C/svg%3E" alt="SDG 9">
+          <a href="https://sdgs.un.org/goals/goal9" target="_blank" rel="noopener noreferrer" class="sdg-link">
+            <div class="sdg-tile sdg-9">
+              <div class="sdg-tile-top">
+                <!-- Factory + building + network nodes -->
+                <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
+                  <!-- Factory left -->
+                  <rect x="4"  y="40" width="28" height="30" rx="2" fill="white" opacity="0.9"/>
+                  <rect x="8"  y="30" width="8"  height="11" rx="1" fill="white" opacity="0.9"/>
+                  <rect x="20" y="34" width="8"  height="7"  rx="1" fill="white" opacity="0.9"/>
+                  <rect x="8"  y="48" width="7"  height="7"  rx="1" fill="#F26A2D"/>
+                  <rect x="19" y="48" width="7"  height="7"  rx="1" fill="#F26A2D"/>
+                  <!-- Office tower right -->
+                  <rect x="48" y="48" width="28" height="22" rx="2" fill="white" opacity="0.85"/>
+                  <rect x="52" y="38" width="5"  height="11" rx="1" fill="white" opacity="0.85"/>
+                  <rect x="61" y="38" width="5"  height="11" rx="1" fill="white" opacity="0.85"/>
+                  <rect x="52" y="55" width="5"  height="5"  rx="1" fill="#F26A2D"/>
+                  <rect x="61" y="55" width="5"  height="5"  rx="1" fill="#F26A2D"/>
+                  <!-- Connecting arc / network -->
+                  <path d="M32 54 Q40 44 48 54" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                  <circle cx="40" cy="44" r="4" fill="white" opacity="0.7"/>
+                  <!-- Cog/gear top-right -->
+                  <circle cx="68" cy="14" r="8" stroke="white" stroke-width="2.5" fill="none" opacity="0.9"/>
+                  <circle cx="68" cy="14" r="3" fill="white" opacity="0.9"/>
+                  <line x1="68" y1="4"  x2="68" y2="7"  stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+                  <line x1="68" y1="21" x2="68" y2="24" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+                  <line x1="58" y1="14" x2="61" y2="14" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+                  <line x1="75" y1="14" x2="78" y2="14" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+                </svg>
+              </div>
+              <span class="sdg-number">9</span>
+              <span class="sdg-label">INDUSTRY, INNOVATION AND INFRASTRUCTURE</span>
+            </div>
+            <span class="sdg-tooltip">Build resilient infrastructure, promote inclusive and sustainable industrialization and foster innovation</span>
+          </a>
           <div>Industry, Innovation &amp; Infrastructure</div>
         </div>
+
       </div>
 
       <div class="section-header">
@@ -605,23 +999,41 @@
         <p>Compact sensors, powerful insights. All integrated into a single wearable device.</p>
       </div>
       <div class="components-grid">
-        <!-- Drop esp32.png and bme688.png into server/website/ to show these images -->
         <div class="component-item">
-          <img src="./esp32.png" alt="ESP32-WROOM-32E" class="component-image"
-               onerror="this.style.opacity='0.2';this.alt='ESP32 image not found'">
-          <div class="component-name">ESP32-WROOM-32E</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px">Wi-Fi + BLE Microcontroller</div>
+          <a href="https://www.espressif.com/" target="_blank" rel="noopener noreferrer" class="component-link">
+            <div class="component-card">
+              <img src="images/esp32.png" alt="ESP32" class="component-img"
+                   onerror="this.style.opacity='0.2'">
+              <div class="component-overlay">
+                <p>Dual-core 240MHz microcontroller with Wi-Fi &amp; Bluetooth. The brain of every HIVIS Monitor node.</p>
+              </div>
+            </div>
+          </a>
+          <div class="component-label">ESP32</div>
+          <div class="component-sublabel">Wi-Fi · BLE · 240MHz</div>
         </div>
         <div class="component-item">
-          <img src="./bme688.png" alt="Bosch BME688" class="component-image"
-               onerror="this.style.opacity='0.2';this.alt='BME688 image not found'">
-          <div class="component-name">Bosch BME688</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px">Temp · Humidity · IAQ · eCO₂</div>
+          <a href="https://www.bosch-sensortec.com/en/products/environmental-sensors/gas-sensors/bme688" target="_blank" rel="noopener noreferrer" class="component-link">
+            <div class="component-card">
+              <img src="images/bme688.png" alt="Bosch BME688" class="component-img"
+                   onerror="this.style.opacity='0.2'">
+              <div class="component-overlay">
+                <p>Bosch environmental sensor measuring temperature, humidity, pressure, IAQ score, eCO₂ and bVOC gas index.</p>
+              </div>
+            </div>
+          </a>
+          <div class="component-label">Bosch BME688</div>
+          <div class="component-sublabel">Temp · Humidity · IAQ · eCO₂</div>
         </div>
         <div class="component-item">
-          <img src="./HIVIS2Final.png" alt="HIVIS Monitor 2.0 Device" class="component-image">
-          <div class="component-name">HIVIS Monitor 2.0</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px">Wearable sensor node</div>
+          <div class="component-card">
+            <img src="images/HIVIS2Final.png" alt="HIVIS Monitor 2.0 Device" class="component-img">
+            <div class="component-overlay">
+              <p>Bringing it all together — safety and data intelligence for your team, worn right on the vest.</p>
+            </div>
+          </div>
+          <div class="component-label">HIVIS Monitor 2.0</div>
+          <div class="component-sublabel">Wearable sensor node</div>
         </div>
       </div>
     </section>
@@ -665,7 +1077,15 @@
   </main>
 
   <footer>
-    <p>&copy; 2026 HIVIS Monitor Project &nbsp;·&nbsp; Saskatchewan Polytechnic Applied Research</p>
+    <p>&copy; 2026 HIVIS Monitor Project</p>
+    <div class="footer-institution">
+      <img src="images/sask-poly-logo.png" alt="Saskatchewan Polytechnic" class="footer-logo"
+           onerror="this.style.display='none'">
+      <span>
+        A <a href="https://saskpolytech.ca" target="_blank" rel="noopener noreferrer">Saskatchewan Polytechnic</a>
+        Applied Research project &nbsp;·&nbsp; 2026
+      </span>
+    </div>
   </footer>
 
   <script>
