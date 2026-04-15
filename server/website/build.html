@@ -471,11 +471,59 @@
           padding: 1rem 1.5rem;
         }
       }
+
+      /* ── HAMBURGER ── */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        z-index: 200;
+      }
+      .hamburger span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: var(--yellow);
+        border-radius: 2px;
+        transition: transform 0.3s, opacity 0.3s;
+      }
+      nav.open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+      nav.open .hamburger span:nth-child(2) { opacity: 0; }
+      nav.open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+      @media (max-width: 640px) {
+        .hamburger { display: flex; }
+        .nav-links {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0; right: 0;
+          background: rgba(10,10,10,0.97);
+          backdrop-filter: blur(12px);
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 1.5rem 2rem;
+          gap: 1.25rem;
+          border-bottom: 1px solid var(--border);
+          list-style: none;
+        }
+        .nav-links a { font-size: 1rem; }
+        nav.open .nav-links { display: flex; }
+        nav { position: relative; }
+      }
     </style>
   </head>
   <body>
     <nav>
       <a href="/" class="nav-logo">HIVIS MONITOR</a>
+      <button class="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
         <li><a href="/about.html">About</a></li>
@@ -1044,6 +1092,20 @@
         { threshold: 0.1 },
       );
       reveals.forEach((el) => io.observe(el));
+
+      // Hamburger menu
+      const nav = document.querySelector('nav');
+      const hamburger = nav.querySelector('.hamburger');
+      hamburger.addEventListener('click', () => {
+        const open = nav.classList.toggle('open');
+        hamburger.setAttribute('aria-expanded', open);
+      });
+      document.addEventListener('click', e => {
+        if (!nav.contains(e.target)) {
+          nav.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+        }
+      });
     </script>
   </body>
 </html>
