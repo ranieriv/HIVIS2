@@ -1,1294 +1,1779 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HIVIS Monitor 2.0 — Workplace Air Quality &amp; Acoustics</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
-      color: #ffffff;
-      line-height: 1.6;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ── HEADER ── */
-    header {
-      background: rgba(15, 17, 23, 0.85);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(251, 191, 36, 0.15);
-      padding: 1rem 2rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      background: linear-gradient(90deg, #fbbf24 0%, #a7f3d0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 2rem;
-      align-items: center;
-    }
-
-    .nav-links a {
-      color: rgba(255, 255, 255, 0.7);
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.3s;
-    }
-
-    .nav-links a:hover { color: #fbbf24; }
-
-    .live-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.6);
-    }
-
-    .live-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #a7f3d0;
-      flex-shrink: 0;
-    }
-    .live-dot.ok    { background: #a7f3d0; animation: pulse-dot 2s infinite; }
-    .live-dot.error { background: #f87171; animation: blink 1s infinite; }
-
-    @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
-
-    /* ── MAIN ── */
-    main { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
-
-    /* ── HERO ── */
-    .hero {
-      position: relative;
-      /* Break out of main's max-width */
-      width: 100vw;
-      left: 50%;
-      transform: translateX(-50%);
-      min-height: 620px;
-      overflow: hidden;
-      border-bottom: 1px solid rgba(251, 191, 36, 0.1);
-    }
-
-    /* Gradient: opaque dark left → transparent right so woman is visible */
-    .hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg,
-        rgba(13,17,23,0.97) 0%,
-        rgba(13,17,23,0.88) 30%,
-        rgba(13,17,23,0.50) 55%,
-        rgba(13,17,23,0.10) 80%,
-        rgba(13,17,23,0.00) 100%);
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    /* Image fills the full hero area */
-    .hero-image {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 0;
-      border: none;
-      background: none;
-      overflow: hidden;
-    }
-
-    .hero-image img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      object-position: 65% center;
-    }
-
-    /* Text sits over the gradient on the left */
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      max-width: 600px;
-      min-height: 620px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 5rem 2rem;
-      margin-left: max(2rem, calc((100vw - 1400px) / 2 + 2rem));
-    }
-
-    .hero-content h1 {
-      font-size: 48px;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      line-height: 1.2;
-    }
-
-    .hero-content h1 .highlight {
-      background: linear-gradient(90deg, #fbbf24 0%, #a7f3d0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-content p {
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.85);
-      margin-bottom: 2rem;
-      line-height: 1.8;
-    }
-
-    .hero-cta { display: flex; gap: 1rem; }
-
-    .primary-btn {
-      background: linear-gradient(135deg, #fbbf24 0%, #a7f3d0 100%);
-      color: #0d1117;
-      padding: 14px 32px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 16px;
-      transition: transform 0.3s, box-shadow 0.3s;
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .primary-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
-    }
-
-    .secondary-btn {
-      background: transparent;
-      color: #a7f3d0;
-      padding: 14px 32px;
-      border: 2px solid #a7f3d0;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 16px;
-      transition: all 0.3s;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .secondary-btn:hover {
-      background: rgba(167, 243, 208, 0.1);
-      transform: translateY(-2px);
-    }
-
-    /* ── ABOUT / SDG ── */
-    .components-section {
-      padding: 4rem 0;
-      border-top: 1px solid rgba(251, 191, 36, 0.1);
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-
-    .section-header h2 {
-      font-size: 36px;
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-
-    .section-header p {
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.7);
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .sdg-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
-      text-align: center;
-    }
-
-    .sdg-item img {
-      width: 100%;
-      max-width: 150px;
-      margin-bottom: 1rem;
-    }
-
-    .sdg-item div {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .components-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
-    }
-
-    .component-item { text-align: center; }
-
-    .component-image {
-      width: 100%;
-      max-width: 200px;
-      height: 200px;
-      object-fit: contain;
-      margin-bottom: 1rem;
-      filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.2));
-    }
-
-    .component-name {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.8);
-      font-weight: 500;
-    }
-
-    /* ── DASHBOARD SECTION ── */
-    .dashboard-section {
-      padding: 4rem 0;
-      border-top: 1px solid rgba(251, 191, 36, 0.1);
-    }
-
-    .fleet-overview {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .metric-card {
-      background: rgba(255, 255, 255, 0.07);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(167, 243, 208, 0.25);
-      border-radius: 12px;
-      padding: 1.5rem;
-      text-align: center;
-    }
-
-    .metric-card.amber { border-color: rgba(251, 191, 36, 0.3); }
-
-    .metric-label {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 0.75rem;
-    }
-
-    .metric-value {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .metric-card.teal .metric-label { color: #a7f3d0; }
-    .metric-card.teal .metric-value { color: #d1fae5; }
-    .metric-card.amber .metric-label { color: #fbbf24; }
-    .metric-card.amber .metric-value { color: #fcd34d; }
-    .metric-unit { font-size: 13px; color: rgba(255, 255, 255, 0.5); }
-
-    /* ── DEVICE CARDS ── */
-    .devices-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .device-card {
-      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 1.5rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .device-card:hover {
-      border-color: rgba(251, 191, 36, 0.4);
-      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.06) 100%);
-    }
-
-    .device-card.expanded { grid-column: 1 / -1; cursor: default; }
-
-    .device-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 2px solid #fbbf24;
-    }
-
-    .device-name { font-size: 16px; font-weight: 600; }
-    .device-id-label { font-size: 11px; color: rgba(255,255,255,0.45); font-family: monospace; margin-top: 2px; }
-
-    .device-status {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      font-size: 12px;
-      color: #a7f3d0;
-      flex-shrink: 0;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: #a7f3d0;
-      border-radius: 50%;
-      animation: pulse-dot 2s infinite;
-    }
-
-    .device-metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .metric-item {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(167,243,208,0.25);
-      border-bottom: 2px solid #a7f3d0;
-      border-radius: 8px;
-      padding: 1rem;
-      text-align: center;
-    }
-
-    .metric-item.amber {
-      border-color: rgba(251,191,36,0.3);
-      border-bottom-color: #fbbf24;
-    }
-
-    .metric-item-label {
-      font-size: 11px;
-      color: rgba(255,255,255,0.6);
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
-    .metric-item-value { font-size: 20px; font-weight: 700; margin-bottom: 0.25rem; }
-    .metric-item-unit { font-size: 10px; color: rgba(255,255,255,0.5); }
-
-    .metric-item.teal .metric-item-label { color: #a7f3d0; }
-    .metric-item.teal .metric-item-value { color: #d1fae5; }
-    .metric-item.amber .metric-item-label { color: #fbbf24; }
-    .metric-item.amber .metric-item-value { color: #fcd34d; }
-
-    .expand-hint {
-      text-align: center;
-      font-size: 12px;
-      color: rgba(255,255,255,0.35);
-      padding-top: 8px;
-      user-select: none;
-    }
-
-    /* ── EXPANDED CARD CONTENT ── */
-    .device-expanded-content { display: none; }
-    .device-card.expanded .device-expanded-content { display: block; }
-
-    .expanded-metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .expanded-metric {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(167,243,208,0.15);
-      border-radius: 8px;
-      padding: 0.75rem;
-      text-align: center;
-    }
-
-    .expanded-metric.amber { border-color: rgba(251,191,36,0.2); }
-
-    .expanded-metric-label {
-      font-size: 10px;
-      color: rgba(255,255,255,0.5);
-      text-transform: uppercase;
-      margin-bottom: 0.4rem;
-    }
-
-    .expanded-metric-value { font-size: 16px; font-weight: 700; margin-bottom: 0.2rem; }
-    .expanded-metric-unit { font-size: 9px; color: rgba(255,255,255,0.4); }
-
-    .expanded-metric.teal .expanded-metric-label { color: #a7f3d0; }
-    .expanded-metric.teal .expanded-metric-value { color: #d1fae5; }
-    .expanded-metric.amber .expanded-metric-label { color: #fbbf24; }
-    .expanded-metric.amber .expanded-metric-value { color: #fcd34d; }
-
-    /* Chart range selector */
-    .chart-range-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 1rem;
-    }
-
-    .range-btn {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.6);
-      padding: 4px 14px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-
-    .range-btn:hover { color: #fff; border-color: rgba(255,255,255,0.35); }
-
-    .range-btn.active {
-      background: rgba(251,191,36,0.15);
-      border-color: rgba(251,191,36,0.5);
-      color: #fbbf24;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 250px;
-      margin-bottom: 1rem;
-      background: rgba(255,255,255,0.03);
-      border-radius: 8px;
-      padding: 1rem;
-      border: 1px solid rgba(167,243,208,0.1);
-    }
-
-    .chart-loading {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(255,255,255,0.4);
-      font-size: 13px;
-    }
-
-    .collapse-btn {
-      background: transparent;
-      color: #a7f3d0;
-      border: 1px solid rgba(167,243,208,0.5);
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.3s;
-      font-family: inherit;
-    }
-
-    .collapse-btn:hover {
-      background: rgba(167,243,208,0.1);
-      border-color: #a7f3d0;
-    }
-
-    .last-seen {
-      font-size: 11px;
-      color: rgba(255,255,255,0.4);
-      margin-top: 6px;
-    }
-
-    /* ── STATES ── */
-    .loading {
-      text-align: center;
-      padding: 3rem;
-      color: rgba(255,255,255,0.5);
-      font-size: 15px;
-    }
-
-    .no-data {
-      text-align: center;
-      padding: 3rem;
-      color: rgba(255,255,255,0.4);
-    }
-
-    .error-banner {
-      background: rgba(220,38,38,0.1);
-      border: 1px solid rgba(220,38,38,0.3);
-      color: #fca5a5;
-      padding: 1rem 1.25rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      font-size: 13px;
-    }
-
-    /* ── FOOTER ── */
-    footer {
-      background: rgba(15,17,23,0.5);
-      border-top: 1px solid rgba(251,191,36,0.1);
-      padding: 2rem;
-      margin-top: 4rem;
-      text-align: center;
-      color: rgba(255,255,255,0.6);
-      font-size: 14px;
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 768px) {
-      /* Hero: revert to stacked layout */
-      .hero {
-        width: 100%;
-        left: 0;
-        transform: none;
-        min-height: auto;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HIVIS Monitor 2.0 — Workplace Air Quality &amp; Acoustics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+        color: #ffffff;
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ── HEADER ── */
+      header {
+        background: rgba(15, 17, 23, 0.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+        padding: 1rem 2rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .header-content {
+        max-width: 1400px;
+        margin: 0 auto;
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
       }
-      .hero::before { display: none; }
-      .hero-content {
-        position: static;
-        max-width: 100%;
-        min-height: auto;
-        padding: 2rem;
-        margin-left: 0;
-        display: block;
+
+      .logo {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        background: linear-gradient(90deg, #fbbf24 0%, #a7f3d0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
-      .hero-content h1 { font-size: 32px; }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s;
+      }
+
+      .nav-links a:hover {
+        color: #fbbf24;
+      }
+
+      .live-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #a7f3d0;
+        flex-shrink: 0;
+      }
+      .live-dot.ok {
+        background: #a7f3d0;
+        animation: pulse-dot 2s infinite;
+      }
+      .live-dot.error {
+        background: #f87171;
+        animation: blink 1s infinite;
+      }
+
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.2;
+        }
+      }
+
+      /* ── MAIN ── */
+      main {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      /* ── HERO ── */
+      .hero {
+        position: relative;
+        /* Break out of main's max-width */
+        width: 100vw;
+        left: 50%;
+        transform: translateX(-50%);
+        min-height: 620px;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+      }
+
+      /* Gradient: opaque dark left → transparent right so woman is visible */
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          rgba(13, 17, 23, 0.97) 0%,
+          rgba(13, 17, 23, 0.88) 30%,
+          rgba(13, 17, 23, 0.5) 55%,
+          rgba(13, 17, 23, 0.1) 80%,
+          rgba(13, 17, 23, 0) 100%
+        );
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* Image fills the full hero area */
       .hero-image {
-        position: static;
+        position: absolute;
+        inset: 0;
         width: 100%;
-        height: 260px;
-        border-radius: 12px;
-        border: 2px solid rgba(251, 191, 36, 0.3);
-        margin: 0 0 2rem;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+        background: none;
         overflow: hidden;
       }
+
       .hero-image img {
-        object-position: center center;
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: 65% center;
       }
-      /* Other responsive */
-      .fleet-overview { grid-template-columns: 1fr; }
-      .device-metrics-grid { grid-template-columns: 1fr; }
-      .devices-grid { grid-template-columns: 1fr; }
-      .nav-links { display: none; }
-      .hamburger { display: flex; }
-      header.open .nav-links {
+
+      /* Text sits over the gradient on the left */
+      .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 600px;
+        min-height: 620px;
         display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 5rem 2rem;
+        margin-left: max(2rem, calc((100vw - 1400px) / 2 + 2rem));
+      }
+
+      .hero-content h1 {
+        font-size: 48px;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+      }
+
+      .hero-content h1 .highlight {
+        background: linear-gradient(90deg, #fbbf24 0%, #a7f3d0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-content p {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: 2rem;
+        line-height: 1.8;
+      }
+
+      .hero-cta {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .primary-btn {
+        background: linear-gradient(135deg, #fbbf24 0%, #a7f3d0 100%);
+        color: #0d1117;
+        padding: 14px 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 16px;
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .primary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+      }
+
+      .secondary-btn {
+        background: transparent;
+        color: #a7f3d0;
+        padding: 14px 32px;
+        border: 2px solid #a7f3d0;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all 0.3s;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .secondary-btn:hover {
+        background: rgba(167, 243, 208, 0.1);
+        transform: translateY(-2px);
+      }
+
+      /* ── ABOUT / SDG ── */
+      .components-section {
+        padding: 4rem 0;
+        border-top: 1px solid rgba(251, 191, 36, 0.1);
+      }
+
+      .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .section-header h2 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+
+      .section-header p {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.7);
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .sdg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+        text-align: center;
+      }
+
+      .sdg-item img {
+        width: 100%;
+        max-width: 150px;
+        margin-bottom: 1rem;
+      }
+
+      .sdg-item div {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .components-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+      }
+
+      .component-item {
+        text-align: center;
+      }
+
+      .component-image {
+        width: 100%;
+        max-width: 200px;
+        height: 200px;
+        object-fit: contain;
+        margin-bottom: 1rem;
+        filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.2));
+      }
+
+      .component-name {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+      }
+
+      /* ── DASHBOARD SECTION ── */
+      .dashboard-section {
+        padding: 4rem 0;
+        border-top: 1px solid rgba(251, 191, 36, 0.1);
+      }
+
+      .fleet-overview {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+      }
+
+      .metric-card {
+        background: rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(167, 243, 208, 0.25);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      .metric-card.amber {
+        border-color: rgba(251, 191, 36, 0.3);
+      }
+
+      .metric-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+      }
+
+      .metric-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .metric-card.teal .metric-label {
+        color: #a7f3d0;
+      }
+      .metric-card.teal .metric-value {
+        color: #d1fae5;
+      }
+      .metric-card.amber .metric-label {
+        color: #fbbf24;
+      }
+      .metric-card.amber .metric-value {
+        color: #fcd34d;
+      }
+      .metric-unit {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      /* ── DEVICE CARDS ── */
+      .devices-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .device-card {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.07) 0%,
+          rgba(255, 255, 255, 0.04) 100%
+        );
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .device-card:hover {
+        border-color: rgba(251, 191, 36, 0.4);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1) 0%,
+          rgba(255, 255, 255, 0.06) 100%
+        );
+      }
+
+      .device-card.expanded {
+        grid-column: 1 / -1;
+        cursor: default;
+      }
+
+      .device-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #fbbf24;
+      }
+
+      .device-name {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .device-id-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.45);
+        font-family: monospace;
+        margin-top: 2px;
+      }
+
+      .device-status {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        font-size: 12px;
+        color: #a7f3d0;
+        flex-shrink: 0;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #a7f3d0;
+        border-radius: 50%;
+        animation: pulse-dot 2s infinite;
+      }
+
+      .device-metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .metric-item {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(167, 243, 208, 0.25);
+        border-bottom: 2px solid #a7f3d0;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+      }
+
+      .metric-item.amber {
+        border-color: rgba(251, 191, 36, 0.3);
+        border-bottom-color: #fbbf24;
+      }
+
+      .metric-item-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+      }
+
+      .metric-item-value {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+      .metric-item-unit {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .metric-item.teal .metric-item-label {
+        color: #a7f3d0;
+      }
+      .metric-item.teal .metric-item-value {
+        color: #d1fae5;
+      }
+      .metric-item.amber .metric-item-label {
+        color: #fbbf24;
+      }
+      .metric-item.amber .metric-item-value {
+        color: #fcd34d;
+      }
+
+      .expand-hint {
+        text-align: center;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.35);
+        padding-top: 8px;
+        user-select: none;
+      }
+
+      /* ── EXPANDED CARD CONTENT ── */
+      .device-expanded-content {
+        display: none;
+      }
+      .device-card.expanded .device-expanded-content {
+        display: block;
+      }
+
+      .expanded-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .expanded-metric {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(167, 243, 208, 0.15);
+        border-radius: 8px;
+        padding: 0.75rem;
+        text-align: center;
+      }
+
+      .expanded-metric.amber {
+        border-color: rgba(251, 191, 36, 0.2);
+      }
+
+      .expanded-metric-label {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        margin-bottom: 0.4rem;
+      }
+
+      .expanded-metric-value {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+      }
+      .expanded-metric-unit {
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .expanded-metric.teal .expanded-metric-label {
+        color: #a7f3d0;
+      }
+      .expanded-metric.teal .expanded-metric-value {
+        color: #d1fae5;
+      }
+      .expanded-metric.amber .expanded-metric-label {
+        color: #fbbf24;
+      }
+      .expanded-metric.amber .expanded-metric-value {
+        color: #fcd34d;
+      }
+
+      /* Chart range selector */
+      .chart-range-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .range-btn {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.6);
+        padding: 4px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+      }
+
+      .range-btn:hover {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.35);
+      }
+
+      .range-btn.active {
+        background: rgba(251, 191, 36, 0.15);
+        border-color: rgba(251, 191, 36, 0.5);
+        color: #fbbf24;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 250px;
+        margin-bottom: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid rgba(167, 243, 208, 0.1);
+      }
+
+      .chart-loading {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 13px;
+      }
+
+      .collapse-btn {
+        background: transparent;
+        color: #a7f3d0;
+        border: 1px solid rgba(167, 243, 208, 0.5);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.3s;
+        font-family: inherit;
+      }
+
+      .collapse-btn:hover {
+        background: rgba(167, 243, 208, 0.1);
+        border-color: #a7f3d0;
+      }
+
+      .last-seen {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 6px;
+      }
+
+      /* ── STATES ── */
+      .loading {
+        text-align: center;
+        padding: 3rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 15px;
+      }
+
+      .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .error-banner {
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        color: #fca5a5;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 13px;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        background: rgba(15, 17, 23, 0.5);
+        border-top: 1px solid rgba(251, 191, 36, 0.1);
+        padding: 2rem;
+        margin-top: 4rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+      }
+
+      /* ── HAMBURGER ── */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+      }
+      .hamburger span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: #fbbf24;
+        border-radius: 2px;
+        transition: transform 0.3s, opacity 0.3s;
+      }
+      header.open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+      header.open .hamburger span:nth-child(2) { opacity: 0; }
+      header.open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        /* Hero: revert to stacked layout */
+        .hero {
+          width: 100%;
+          left: 0;
+          transform: none;
+          min-height: auto;
+          display: flex;
+          flex-direction: column;
+        }
+        .hero::before {
+          display: none;
+        }
+        .hero-content {
+          position: static;
+          max-width: 100%;
+          min-height: auto;
+          padding: 2rem;
+          margin-left: 0;
+          display: block;
+        }
+        .hero-content h1 {
+          font-size: 32px;
+        }
+        .hero-image {
+          position: static;
+          width: 100%;
+          height: 260px;
+          border-radius: 12px;
+          border: 2px solid rgba(251, 191, 36, 0.3);
+          margin: 0 0 2rem;
+          overflow: hidden;
+        }
+        .hero-image img {
+          object-position: center center;
+        }
+        /* Other responsive */
+        .fleet-overview {
+          grid-template-columns: 1fr;
+        }
+        .device-metrics-grid {
+          grid-template-columns: 1fr;
+        }
+        .devices-grid {
+          grid-template-columns: 1fr;
+        }
+        .nav-links {
+          display: none;
+        }
+        .hamburger {
+          display: flex;
+        }
+        header.open .nav-links {
+          display: flex;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          flex-direction: column;
+          align-items: flex-start;
+          background: rgba(15, 17, 23, 0.97);
+          backdrop-filter: blur(10px);
+          padding: 1.25rem 2rem;
+          gap: 1.25rem;
+          border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+          z-index: 99;
+        }
+      }
+
+      /* ── PROJECT DESCRIPTION ── */
+      .project-description {
+        padding: 80px 20px;
+        max-width: 860px;
+        margin: 0 auto;
+        border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+      }
+      .project-description h2 {
+        font-size: 2rem;
+        margin-bottom: 24px;
+        color: #a7f3d0;
+      }
+      .project-description p {
+        font-size: 1.05rem;
+        line-height: 1.75;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 18px;
+      }
+      .project-stats {
+        display: flex;
+        gap: 48px;
+        flex-wrap: wrap;
+        margin-top: 48px;
+        padding-top: 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .stat-number {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #a7f3d0;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+      }
+
+      /* ── SDG TILES ── */
+      .sdg-grid {
+        display: flex;
+        justify-content: center;
+        gap: 2.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 3rem;
+      }
+      .sdg-item {
+        text-align: center;
+      }
+      .sdg-link {
+        text-decoration: none;
+        display: block;
+        position: relative;
+      }
+      .sdg-link:hover .sdg-tile {
+        transform: scale(1.04);
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+      }
+      .sdg-tile {
+        width: 190px;
+        height: 190px;
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        padding: 14px 14px 10px;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+        cursor: pointer;
+        overflow: hidden;
+      }
+      /* Top row: icon right-aligned */
+      .sdg-tile-top {
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        flex: 1;
+      }
+      .sdg-icon {
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+      }
+      /* Number sits below icon area, left-aligned */
+      .sdg-number {
+        font-size: 64px;
+        font-weight: 900;
+        color: white;
+        line-height: 1;
+        letter-spacing: -2px;
+        text-align: left;
+        margin-bottom: 4px;
+      }
+      /* Title bar at the bottom */
+      .sdg-label {
+        font-size: 8.5px;
+        font-weight: 700;
+        color: white;
+        text-align: left;
+        line-height: 1.25;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding-top: 6px;
+        border-top: 1.5px solid rgba(255, 255, 255, 0.4);
+      }
+      .sdg-3 {
+        background-color: #4ca146;
+      }
+      .sdg-8 {
+        background-color: #a31c44;
+      }
+      .sdg-9 {
+        background-color: #f26a2d;
+      }
+      /* Label below the tile */
+      .sdg-item > div {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 10px;
+      }
+
+      /* Tooltip */
+      .sdg-tooltip {
+        position: absolute;
+        bottom: calc(100% + 12px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(13, 17, 23, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 12px;
+        line-height: 1.5;
+        padding: 10px 14px;
+        border-radius: 6px;
+        width: 200px;
+        text-align: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.18s ease;
+        white-space: normal;
+        z-index: 20;
+      }
+      .sdg-tooltip::after {
+        content: "";
         position: absolute;
         top: 100%;
-        left: 0; right: 0;
-        flex-direction: column;
-        align-items: flex-start;
-        background: rgba(15,17,23,0.97);
-        backdrop-filter: blur(10px);
-        padding: 1.25rem 2rem;
-        gap: 1.25rem;
-        border-bottom: 1px solid rgba(251,191,36,0.15);
-        z-index: 99;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: rgba(13, 17, 23, 0.97);
       }
-    }
+      .sdg-link:hover .sdg-tooltip {
+        opacity: 1;
+      }
 
-    /* ── HAMBURGER ── */
-    .hamburger {
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      gap: 5px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-    }
-    .hamburger span {
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: #fbbf24;
-      border-radius: 2px;
-      transition: transform 0.3s, opacity 0.3s;
-    }
-    header.open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-    header.open .hamburger span:nth-child(2) { opacity: 0; }
-    header.open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+      /* ── COMPONENT CARDS ── */
+      .component-link {
+        text-decoration: none;
+      }
+      .component-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 14px;
+        cursor: pointer;
+        max-width: 300px;
+        width: 100%;
+        transition:
+          box-shadow 0.25s ease,
+          transform 0.25s ease;
+      }
+      .component-card:hover {
+        box-shadow:
+          0 0 0 2px #a7f3d0,
+          0 12px 40px rgba(167, 243, 208, 0.15);
+        transform: translateY(-5px);
+      }
+      .component-img {
+        width: 100%;
+        display: block;
+        border-radius: 14px;
+      }
+      .component-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        border-radius: 14px;
+      }
+      .component-card:hover .component-overlay {
+        opacity: 1;
+      }
+      .component-overlay p {
+        color: #fff;
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: center;
+        margin: 0;
+      }
+      .component-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        margin-top: 12px;
+      }
+      .component-sublabel {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 4px;
+      }
 
-    /* ── PROJECT DESCRIPTION ── */
-    .project-description {
-      padding: 80px 20px;
-      max-width: 860px;
-      margin: 0 auto;
-      border-bottom: 1px solid rgba(251, 191, 36, 0.1);
-    }
-    .project-description h2 {
-      font-size: 2rem;
-      margin-bottom: 24px;
-      color: #a7f3d0;
-    }
-    .project-description p {
-      font-size: 1.05rem;
-      line-height: 1.75;
-      color: rgba(255,255,255,0.7);
-      margin-bottom: 18px;
-    }
-    .project-stats {
-      display: flex;
-      gap: 48px;
-      flex-wrap: wrap;
-      margin-top: 48px;
-      padding-top: 40px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-    }
-    .stat { display: flex; flex-direction: column; gap: 6px; }
-    .stat-number {
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: #a7f3d0;
-      line-height: 1;
-    }
-    .stat-label {
-      font-size: 0.78rem;
-      color: rgba(255,255,255,0.7);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-    }
-
-    /* ── SDG TILES ── */
-    .sdg-grid {
-      display: flex;
-      justify-content: center;
-      gap: 2.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 3rem;
-    }
-    .sdg-item { text-align: center; }
-    .sdg-link {
-      text-decoration: none;
-      display: block;
-      position: relative;
-    }
-    .sdg-link:hover .sdg-tile {
-      transform: scale(1.04);
-      box-shadow: 0 12px 36px rgba(0,0,0,0.35);
-    }
-    .sdg-tile {
-      width: 190px;
-      height: 190px;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      padding: 14px 14px 10px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      cursor: pointer;
-      overflow: hidden;
-    }
-    /* Top row: icon right-aligned */
-    .sdg-tile-top {
-      display: flex;
-      justify-content: flex-end;
-      align-items: flex-start;
-      flex: 1;
-    }
-    .sdg-icon {
-      width: 80px;
-      height: 80px;
-      flex-shrink: 0;
-    }
-    /* Number sits below icon area, left-aligned */
-    .sdg-number {
-      font-size: 64px;
-      font-weight: 900;
-      color: white;
-      line-height: 1;
-      letter-spacing: -2px;
-      text-align: left;
-      margin-bottom: 4px;
-    }
-    /* Title bar at the bottom */
-    .sdg-label {
-      font-size: 8.5px;
-      font-weight: 700;
-      color: white;
-      text-align: left;
-      line-height: 1.25;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding-top: 6px;
-      border-top: 1.5px solid rgba(255,255,255,0.4);
-    }
-    .sdg-3  { background-color: #4CA146; }
-    .sdg-8  { background-color: #A31C44; }
-    .sdg-9  { background-color: #F26A2D; }
-    /* Label below the tile */
-    .sdg-item > div {
-      font-size: 13px;
-      color: rgba(255,255,255,0.7);
-      margin-top: 10px;
-    }
-
-    /* Tooltip */
-    .sdg-tooltip {
-      position: absolute;
-      bottom: calc(100% + 12px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(13,17,23,0.97);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.9);
-      font-size: 12px;
-      line-height: 1.5;
-      padding: 10px 14px;
-      border-radius: 6px;
-      width: 200px;
-      text-align: center;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.18s ease;
-      white-space: normal;
-      z-index: 20;
-    }
-    .sdg-tooltip::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: rgba(13,17,23,0.97);
-    }
-    .sdg-link:hover .sdg-tooltip { opacity: 1; }
-
-    /* ── COMPONENT CARDS ── */
-    .component-link { text-decoration: none; }
-    .component-card {
-      position: relative;
-      overflow: hidden;
-      border-radius: 14px;
-      cursor: pointer;
-      max-width: 300px;
-      width: 100%;
-      transition: box-shadow 0.25s ease, transform 0.25s ease;
-    }
-    .component-card:hover {
-      box-shadow: 0 0 0 2px #a7f3d0, 0 12px 40px rgba(167,243,208,0.15);
-      transform: translateY(-5px);
-    }
-    .component-img { width: 100%; display: block; border-radius: 14px; }
-    .component-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.80);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      border-radius: 14px;
-    }
-    .component-card:hover .component-overlay { opacity: 1; }
-    .component-overlay p {
-      color: #fff;
-      font-size: 14px;
-      line-height: 1.6;
-      text-align: center;
-      margin: 0;
-    }
-    .component-label {
-      font-size: 14px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.9);
-      margin-top: 12px;
-    }
-    .component-sublabel {
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-      margin-top: 4px;
-    }
-
-    /* ── FOOTER INSTITUTION ── */
-    .footer-institution {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.7);
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .footer-logo { height: 36px; opacity: 0.85; }
-    .footer-institution a { color: #a7f3d0; text-decoration: none; }
-    .footer-institution a:hover { text-decoration: underline; }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="header-content">
-      <a href="/" class="logo" style="text-decoration:none;">
-          <img src="images/HIVIS_LOGO_1.png" alt="HIVIS Monitor Logo"
-               style="height:36px;vertical-align:middle;margin-right:10px;"
-               onerror="this.style.display='none'">HIVIS Monitor 2.0</a>
-      <div class="header-right">
-        <button class="hamburger" aria-label="Toggle menu" aria-expanded="false">
-          <span></span><span></span><span></span>
-        </button>
-        <nav class="nav-links">
-          <a href="#about">About</a>
-          <a href="#dashboard">Dashboard</a>
-          <a href="about.html">About Me</a>
-          <a href="build.html">The Build</a>
-        </nav>
-        <div class="live-indicator">
-          <div class="live-dot ok" id="live-dot"></div>
-          <span id="live-text">Connecting…</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <!-- ── HERO ── -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1>Workplace <span class="highlight">Air Quality</span> &amp; Acoustic Monitoring</h1>
-        <p>Real-time indoor air quality and sound level monitoring for workplace safety.
-           HIVIS Monitor 2.0 integrates seamlessly into your hi-vis vest, providing
-           actionable IAQ insights on demand.</p>
-        <div class="hero-cta">
-          <button class="primary-btn" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})">
-            View Live Dashboard
+      /* ── FOOTER INSTITUTION ── */
+      .footer-institution {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.7);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .footer-logo {
+        height: 36px;
+        opacity: 0.85;
+      }
+      .footer-institution a {
+        color: #a7f3d0;
+        text-decoration: none;
+      }
+      .footer-institution a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <a href="/" class="logo" style="text-decoration: none">
+          <img
+            src="images/HIVIS_LOGO_1.png"
+            alt="HIVIS Monitor Logo"
+            style="height: 36px; vertical-align: middle; margin-right: 10px"
+            onerror="this.style.display = 'none'"
+          />HIVIS Monitor 2.0</a
+        >
+        <div class="header-right">
+          <button
+            class="hamburger"
+            aria-label="Toggle menu"
+            aria-expanded="false"
+          >
+            <span></span><span></span><span></span>
           </button>
-          <button class="secondary-btn" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">
-            Learn More
-          </button>
-        </div>
-      </div>
-      <div class="hero-image">
-        <img src="images/HIVIS_Worker_Extended2.png" alt="HIVIS Monitor in use">
-      </div>
-    </section>
-
-    <!-- ── PROJECT DESCRIPTION ── -->
-    <section id="about-section" class="project-description">
-      <div>
-        <h2>About the Project</h2>
-        <p>
-          HIVIS Monitor is a wearable IoT system designed for indoor air quality and acoustic
-          monitoring in trades and industrial workplaces. The device fits inside a standard
-          hi-vis safety vest and continuously measures IAQ score, eCO₂, bVOC gas index,
-          temperature, humidity, and noise levels.
-        </p>
-        <p>
-          Built on the ESP32 microcontroller with a Bosch BME688 environmental sensor and
-          an INMP441 MEMS microphone, each device publishes data every 3 seconds to a
-          self-hosted server stack — Mosquitto MQTT, Node-RED, InfluxDB, and Grafana —
-          all running on a single machine on-site.
-        </p>
-        <p>
-          The system is fully self-hosted and privacy-respecting. No data leaves your
-          network. Workers get real-time air quality feedback on the device OLED display;
-          supervisors see the full fleet view on the live dashboard below.
-        </p>
-        <div class="project-stats">
-          <div class="stat">
-            <span class="stat-number">3s</span>
-            <span class="stat-label">Sensor update interval</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">10+</span>
-            <span class="stat-label">Devices supported</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">5</span>
-            <span class="stat-label">Air quality metrics</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">100%</span>
-            <span class="stat-label">Self-hosted &amp; private</span>
+          <nav class="nav-links">
+            <a href="#about">About</a>
+            <a href="#dashboard">Dashboard</a>
+            <a href="about.html">About Me</a>
+            <a href="build.html">The Build</a>
+          </nav>
+          <div class="live-indicator">
+            <div class="live-dot ok" id="live-dot"></div>
+            <span id="live-text">Connecting…</span>
           </div>
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- ── ABOUT / SDG ── -->
-    <section class="components-section" id="about">
-      <div class="section-header">
-        <h2>Sustainable development impact</h2>
-        <p>HIVIS Monitor 2.0 aligns with global sustainability goals for workplace health and innovation.</p>
-      </div>
+    <main>
+      <!-- ── HERO ── -->
+      <section class="hero">
+        <div class="hero-content">
+          <h1>
+            Workplace <span class="highlight">Air Quality</span> &amp; Acoustic
+            Monitoring
+          </h1>
+          <p>
+            Real-time indoor air quality and sound level monitoring for
+            workplace safety. HIVIS Monitor 2.0 integrates seamlessly into your
+            hi-vis vest, providing actionable IAQ insights on demand.
+          </p>
+          <div class="hero-cta">
+            <button
+              class="primary-btn"
+              onclick="
+                document
+                  .getElementById('dashboard')
+                  .scrollIntoView({ behavior: 'smooth' })
+              "
+            >
+              View Live Dashboard
+            </button>
+            <button
+              class="secondary-btn"
+              onclick="
+                document
+                  .getElementById('about')
+                  .scrollIntoView({ behavior: 'smooth' })
+              "
+            >
+              Learn More
+            </button>
+          </div>
+        </div>
+        <div class="hero-image">
+          <img
+            src="images/HIVIS_Worker_Extended2.png"
+            alt="HIVIS Monitor in use"
+          />
+        </div>
+      </section>
 
-      <div class="sdg-grid">
-
-        <!-- SDG 3 — Good Health & Well-being -->
-        <div class="sdg-item">
-          <a href="https://sdgs.un.org/goals/goal3" target="_blank" rel="noopener noreferrer" class="sdg-link">
-            <div class="sdg-tile sdg-3">
-              <div class="sdg-tile-top">
-                <!-- Heart with ECG pulse line -->
-                <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
-                  <path d="M40 66 C40 66 10 48 10 26 C10 16 17 9 26 9 C31.5 9 36.5 12 40 17 C43.5 12 48.5 9 54 9 C63 9 70 16 70 26 C70 48 40 66 40 66Z"
-                        fill="rgba(255,255,255,0.18)" stroke="white" stroke-width="3" stroke-linejoin="round"/>
-                  <path d="M18 36 L25 36 L29 26 L33 46 L37 32 L40 36 L47 36 L52 36"
-                        stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <span class="sdg-number">3</span>
-              <span class="sdg-label">GOOD HEALTH AND WELL-BEING</span>
+      <!-- ── PROJECT DESCRIPTION ── -->
+      <section id="about-section" class="project-description">
+        <div>
+          <h2>About the Project</h2>
+          <p>
+            HIVIS Monitor is a wearable IoT system designed for indoor air
+            quality and acoustic monitoring in trades and industrial workplaces.
+            The device fits inside a standard hi-vis safety vest and
+            continuously measures IAQ score, eCO₂, bVOC gas index, temperature,
+            humidity, and noise levels.
+          </p>
+          <p>
+            Built on the ESP32 microcontroller with a Bosch BME688 environmental
+            sensor and an INMP441 MEMS microphone, each device publishes data
+            every 3 seconds to a self-hosted server stack — Mosquitto MQTT,
+            Node-RED, InfluxDB, and Grafana — all running on a single machine
+            on-site.
+          </p>
+          <p>
+            The system is fully self-hosted and privacy-respecting. No data
+            leaves your network. Workers get real-time air quality feedback on
+            the device OLED display; supervisors see the full fleet view on the
+            live dashboard below.
+          </p>
+          <div class="project-stats">
+            <div class="stat">
+              <span class="stat-number">3s</span>
+              <span class="stat-label">Sensor update interval</span>
             </div>
-            <span class="sdg-tooltip">Ensure healthy lives and promote well-being for all at all ages</span>
-          </a>
-          <div>Good Health &amp; Well-being</div>
-        </div>
-
-        <!-- SDG 8 — Decent Work & Economic Growth -->
-        <div class="sdg-item">
-          <a href="https://sdgs.un.org/goals/goal8" target="_blank" rel="noopener noreferrer" class="sdg-link">
-            <div class="sdg-tile sdg-8">
-              <div class="sdg-tile-top">
-                <!-- Rising bar chart with upward arrow -->
-                <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
-                  <rect x="8"  y="54" width="14" height="18" rx="2" fill="white" opacity="0.9"/>
-                  <rect x="28" y="40" width="14" height="32" rx="2" fill="white" opacity="0.9"/>
-                  <rect x="48" y="24" width="14" height="48" rx="2" fill="white" opacity="0.9"/>
-                  <path d="M14 56 L36 40 L56 24" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                  <path d="M48 10 L66 10 L66 28" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                  <line x1="56" y1="24" x2="66" y2="10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <span class="sdg-number">8</span>
-              <span class="sdg-label">DECENT WORK AND ECONOMIC GROWTH</span>
+            <div class="stat">
+              <span class="stat-number">10+</span>
+              <span class="stat-label">Devices supported</span>
             </div>
-            <span class="sdg-tooltip">Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all</span>
-          </a>
-          <div>Decent Work &amp; Economic Growth</div>
-        </div>
-
-        <!-- SDG 9 — Industry, Innovation & Infrastructure -->
-        <div class="sdg-item">
-          <a href="https://sdgs.un.org/goals/goal9" target="_blank" rel="noopener noreferrer" class="sdg-link">
-            <div class="sdg-tile sdg-9">
-              <div class="sdg-tile-top">
-                <!-- Factory + building + network nodes -->
-                <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
-                  <!-- Factory left -->
-                  <rect x="4"  y="40" width="28" height="30" rx="2" fill="white" opacity="0.9"/>
-                  <rect x="8"  y="30" width="8"  height="11" rx="1" fill="white" opacity="0.9"/>
-                  <rect x="20" y="34" width="8"  height="7"  rx="1" fill="white" opacity="0.9"/>
-                  <rect x="8"  y="48" width="7"  height="7"  rx="1" fill="#F26A2D"/>
-                  <rect x="19" y="48" width="7"  height="7"  rx="1" fill="#F26A2D"/>
-                  <!-- Office tower right -->
-                  <rect x="48" y="48" width="28" height="22" rx="2" fill="white" opacity="0.85"/>
-                  <rect x="52" y="38" width="5"  height="11" rx="1" fill="white" opacity="0.85"/>
-                  <rect x="61" y="38" width="5"  height="11" rx="1" fill="white" opacity="0.85"/>
-                  <rect x="52" y="55" width="5"  height="5"  rx="1" fill="#F26A2D"/>
-                  <rect x="61" y="55" width="5"  height="5"  rx="1" fill="#F26A2D"/>
-                  <!-- Connecting arc / network -->
-                  <path d="M32 54 Q40 44 48 54" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
-                  <circle cx="40" cy="44" r="4" fill="white" opacity="0.7"/>
-                  <!-- Cog/gear top-right -->
-                  <circle cx="68" cy="14" r="8" stroke="white" stroke-width="2.5" fill="none" opacity="0.9"/>
-                  <circle cx="68" cy="14" r="3" fill="white" opacity="0.9"/>
-                  <line x1="68" y1="4"  x2="68" y2="7"  stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
-                  <line x1="68" y1="21" x2="68" y2="24" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
-                  <line x1="58" y1="14" x2="61" y2="14" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
-                  <line x1="75" y1="14" x2="78" y2="14" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
-                </svg>
-              </div>
-              <span class="sdg-number">9</span>
-              <span class="sdg-label">INDUSTRY, INNOVATION AND INFRASTRUCTURE</span>
+            <div class="stat">
+              <span class="stat-number">5</span>
+              <span class="stat-label">Air quality metrics</span>
             </div>
-            <span class="sdg-tooltip">Build resilient infrastructure, promote inclusive and sustainable industrialization and foster innovation</span>
-          </a>
-          <div>Industry, Innovation &amp; Infrastructure</div>
+            <div class="stat">
+              <span class="stat-number">100%</span>
+              <span class="stat-label">Self-hosted &amp; private</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ABOUT / SDG ── -->
+      <section class="components-section" id="about">
+        <div class="section-header">
+          <h2>Sustainable development impact</h2>
+          <p>
+            HIVIS Monitor 2.0 aligns with global sustainability goals for
+            workplace health and innovation.
+          </p>
         </div>
 
-      </div>
+        <div class="sdg-grid">
+          <!-- SDG 3 — Good Health & Well-being -->
+          <div class="sdg-item">
+            <a
+              href="https://sdgs.un.org/goals/goal3"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="sdg-link"
+            >
+              <div class="sdg-tile sdg-3">
+                <div class="sdg-tile-top">
+                  <!-- Heart with ECG pulse line -->
+                  <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
+                    <path
+                      d="M40 66 C40 66 10 48 10 26 C10 16 17 9 26 9 C31.5 9 36.5 12 40 17 C43.5 12 48.5 9 54 9 C63 9 70 16 70 26 C70 48 40 66 40 66Z"
+                      fill="rgba(255,255,255,0.18)"
+                      stroke="white"
+                      stroke-width="3"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M18 36 L25 36 L29 26 L33 46 L37 32 L40 36 L47 36 L52 36"
+                      stroke="white"
+                      stroke-width="3"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                <span class="sdg-number">3</span>
+                <span class="sdg-label">GOOD HEALTH AND WELL-BEING</span>
+              </div>
+              <span class="sdg-tooltip"
+                >Ensure healthy lives and promote well-being for all at all
+                ages</span
+              >
+            </a>
+            <div>Good Health &amp; Well-being</div>
+          </div>
 
-      <div class="section-header">
-        <h2>Inside the technology</h2>
-        <p>Compact sensors, powerful insights. All integrated into a single wearable device.</p>
-      </div>
-      <div class="components-grid">
-        <div class="component-item">
-          <a href="https://www.espressif.com/" target="_blank" rel="noopener noreferrer" class="component-link">
+          <!-- SDG 8 — Decent Work & Economic Growth -->
+          <div class="sdg-item">
+            <a
+              href="https://sdgs.un.org/goals/goal8"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="sdg-link"
+            >
+              <div class="sdg-tile sdg-8">
+                <div class="sdg-tile-top">
+                  <!-- Rising bar chart with upward arrow -->
+                  <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
+                    <rect
+                      x="8"
+                      y="54"
+                      width="14"
+                      height="18"
+                      rx="2"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="28"
+                      y="40"
+                      width="14"
+                      height="32"
+                      rx="2"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="48"
+                      y="24"
+                      width="14"
+                      height="48"
+                      rx="2"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <path
+                      d="M14 56 L36 40 L56 24"
+                      stroke="white"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      fill="none"
+                    />
+                    <path
+                      d="M48 10 L66 10 L66 28"
+                      stroke="white"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      fill="none"
+                    />
+                    <line
+                      x1="56"
+                      y1="24"
+                      x2="66"
+                      y2="10"
+                      stroke="white"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </div>
+                <span class="sdg-number">8</span>
+                <span class="sdg-label">DECENT WORK AND ECONOMIC GROWTH</span>
+              </div>
+              <span class="sdg-tooltip"
+                >Promote sustained, inclusive and sustainable economic growth,
+                full and productive employment and decent work for all</span
+              >
+            </a>
+            <div>Decent Work &amp; Economic Growth</div>
+          </div>
+
+          <!-- SDG 9 — Industry, Innovation & Infrastructure -->
+          <div class="sdg-item">
+            <a
+              href="https://sdgs.un.org/goals/goal9"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="sdg-link"
+            >
+              <div class="sdg-tile sdg-9">
+                <div class="sdg-tile-top">
+                  <!-- Factory + building + network nodes -->
+                  <svg class="sdg-icon" viewBox="0 0 80 80" fill="none">
+                    <!-- Factory left -->
+                    <rect
+                      x="4"
+                      y="40"
+                      width="28"
+                      height="30"
+                      rx="2"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="8"
+                      y="30"
+                      width="8"
+                      height="11"
+                      rx="1"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="20"
+                      y="34"
+                      width="8"
+                      height="7"
+                      rx="1"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="8"
+                      y="48"
+                      width="7"
+                      height="7"
+                      rx="1"
+                      fill="#F26A2D"
+                    />
+                    <rect
+                      x="19"
+                      y="48"
+                      width="7"
+                      height="7"
+                      rx="1"
+                      fill="#F26A2D"
+                    />
+                    <!-- Office tower right -->
+                    <rect
+                      x="48"
+                      y="48"
+                      width="28"
+                      height="22"
+                      rx="2"
+                      fill="white"
+                      opacity="0.85"
+                    />
+                    <rect
+                      x="52"
+                      y="38"
+                      width="5"
+                      height="11"
+                      rx="1"
+                      fill="white"
+                      opacity="0.85"
+                    />
+                    <rect
+                      x="61"
+                      y="38"
+                      width="5"
+                      height="11"
+                      rx="1"
+                      fill="white"
+                      opacity="0.85"
+                    />
+                    <rect
+                      x="52"
+                      y="55"
+                      width="5"
+                      height="5"
+                      rx="1"
+                      fill="#F26A2D"
+                    />
+                    <rect
+                      x="61"
+                      y="55"
+                      width="5"
+                      height="5"
+                      rx="1"
+                      fill="#F26A2D"
+                    />
+                    <!-- Connecting arc / network -->
+                    <path
+                      d="M32 54 Q40 44 48 54"
+                      stroke="white"
+                      stroke-width="2"
+                      fill="none"
+                      stroke-linecap="round"
+                      opacity="0.7"
+                    />
+                    <circle cx="40" cy="44" r="4" fill="white" opacity="0.7" />
+                    <!-- Cog/gear top-right -->
+                    <circle
+                      cx="68"
+                      cy="14"
+                      r="8"
+                      stroke="white"
+                      stroke-width="2.5"
+                      fill="none"
+                      opacity="0.9"
+                    />
+                    <circle cx="68" cy="14" r="3" fill="white" opacity="0.9" />
+                    <line
+                      x1="68"
+                      y1="4"
+                      x2="68"
+                      y2="7"
+                      stroke="white"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      opacity="0.9"
+                    />
+                    <line
+                      x1="68"
+                      y1="21"
+                      x2="68"
+                      y2="24"
+                      stroke="white"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      opacity="0.9"
+                    />
+                    <line
+                      x1="58"
+                      y1="14"
+                      x2="61"
+                      y2="14"
+                      stroke="white"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      opacity="0.9"
+                    />
+                    <line
+                      x1="75"
+                      y1="14"
+                      x2="78"
+                      y2="14"
+                      stroke="white"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      opacity="0.9"
+                    />
+                  </svg>
+                </div>
+                <span class="sdg-number">9</span>
+                <span class="sdg-label"
+                  >INDUSTRY, INNOVATION AND INFRASTRUCTURE</span
+                >
+              </div>
+              <span class="sdg-tooltip"
+                >Build resilient infrastructure, promote inclusive and
+                sustainable industrialization and foster innovation</span
+              >
+            </a>
+            <div>Industry, Innovation &amp; Infrastructure</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2>Inside the technology</h2>
+          <p>
+            Compact sensors, powerful insights. All integrated into a single
+            wearable device.
+          </p>
+        </div>
+        <div class="components-grid">
+          <div class="component-item">
+            <a
+              href="https://www.espressif.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="component-link"
+            >
+              <div class="component-card">
+                <img
+                  src="images/esp32.png"
+                  alt="ESP32"
+                  class="component-img"
+                  onerror="this.style.opacity = '0.2'"
+                />
+                <div class="component-overlay">
+                  <p>
+                    Dual-core 240MHz microcontroller with Wi-Fi &amp; Bluetooth.
+                    The brain of every HIVIS Monitor node.
+                  </p>
+                </div>
+              </div>
+            </a>
+            <div class="component-label">ESP32</div>
+            <div class="component-sublabel">Wi-Fi · BLE · 240MHz</div>
+          </div>
+          <div class="component-item">
+            <a
+              href="https://www.bosch-sensortec.com/en/products/environmental-sensors/gas-sensors/bme688"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="component-link"
+            >
+              <div class="component-card">
+                <img
+                  src="images/bme688.png"
+                  alt="Bosch BME688"
+                  class="component-img"
+                  onerror="this.style.opacity = '0.2'"
+                />
+                <div class="component-overlay">
+                  <p>
+                    Bosch environmental sensor measuring temperature, humidity,
+                    pressure, IAQ score, eCO₂ and bVOC gas index.
+                  </p>
+                </div>
+              </div>
+            </a>
+            <div class="component-label">Bosch BME688</div>
+            <div class="component-sublabel">Temp · Humidity · IAQ · eCO₂</div>
+          </div>
+          <div class="component-item">
             <div class="component-card">
-              <img src="images/esp32.png" alt="ESP32" class="component-img"
-                   onerror="this.style.opacity='0.2'">
+              <img
+                src="images/HIVIS2Final.png"
+                alt="HIVIS Monitor 2.0 Device"
+                class="component-img"
+              />
               <div class="component-overlay">
-                <p>Dual-core 240MHz microcontroller with Wi-Fi &amp; Bluetooth. The brain of every HIVIS Monitor node.</p>
+                <p>
+                  Bringing it all together — safety and data intelligence for
+                  your team, worn right on the vest.
+                </p>
               </div>
             </div>
-          </a>
-          <div class="component-label">ESP32</div>
-          <div class="component-sublabel">Wi-Fi · BLE · 240MHz</div>
-        </div>
-        <div class="component-item">
-          <a href="https://www.bosch-sensortec.com/en/products/environmental-sensors/gas-sensors/bme688" target="_blank" rel="noopener noreferrer" class="component-link">
-            <div class="component-card">
-              <img src="images/bme688.png" alt="Bosch BME688" class="component-img"
-                   onerror="this.style.opacity='0.2'">
-              <div class="component-overlay">
-                <p>Bosch environmental sensor measuring temperature, humidity, pressure, IAQ score, eCO₂ and bVOC gas index.</p>
-              </div>
-            </div>
-          </a>
-          <div class="component-label">Bosch BME688</div>
-          <div class="component-sublabel">Temp · Humidity · IAQ · eCO₂</div>
-        </div>
-        <div class="component-item">
-          <div class="component-card">
-            <img src="images/HIVIS2Final.png" alt="HIVIS Monitor 2.0 Device" class="component-img">
-            <div class="component-overlay">
-              <p>Bringing it all together — safety and data intelligence for your team, worn right on the vest.</p>
-            </div>
+            <div class="component-label">HIVIS Monitor 2.0</div>
+            <div class="component-sublabel">Wearable sensor node</div>
           </div>
-          <div class="component-label">HIVIS Monitor 2.0</div>
-          <div class="component-sublabel">Wearable sensor node</div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ── DASHBOARD ── -->
-    <section class="dashboard-section" id="dashboard">
-      <div class="section-header">
-        <h2>Live fleet monitoring</h2>
-        <p>Real-time data from all active devices. Click any device to expand and see detailed metrics and charts.</p>
-      </div>
-
-      <div id="error-container"></div>
-
-      <!-- Fleet summary -->
-      <div class="fleet-overview">
-        <div class="metric-card teal">
-          <div class="metric-label">Active devices</div>
-          <div class="metric-value" id="active-devices">—</div>
+      <!-- ── DASHBOARD ── -->
+      <section class="dashboard-section" id="dashboard">
+        <div class="section-header">
+          <h2>Live fleet monitoring</h2>
+          <p>
+            Real-time data from all active devices. Click any device to expand
+            and see detailed metrics and charts.
+          </p>
         </div>
-        <div class="metric-card amber">
-          <div class="metric-label">Avg eCO₂</div>
-          <div class="metric-value" id="avg-eco2">—</div>
-          <div class="metric-unit">ppm</div>
+
+        <div id="error-container"></div>
+
+        <!-- Fleet summary -->
+        <div class="fleet-overview">
+          <div class="metric-card teal">
+            <div class="metric-label">Active devices</div>
+            <div class="metric-value" id="active-devices">—</div>
+          </div>
+          <div class="metric-card amber">
+            <div class="metric-label">Avg eCO₂</div>
+            <div class="metric-value" id="avg-eco2">—</div>
+            <div class="metric-unit">ppm</div>
+          </div>
+          <div class="metric-card teal">
+            <div class="metric-label">Avg IAQ Score</div>
+            <div class="metric-value" id="avg-iaq">—</div>
+            <div class="metric-unit">/ 500</div>
+          </div>
         </div>
-        <div class="metric-card teal">
-          <div class="metric-label">Avg IAQ Score</div>
-          <div class="metric-value" id="avg-iaq">—</div>
-          <div class="metric-unit">/ 500</div>
+
+        <!-- Device cards -->
+        <div class="devices-grid" id="devices-container">
+          <div class="loading">Loading live data…</div>
         </div>
+
+        <div
+          style="
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+          "
+        >
+          Auto-refreshes every 10 s &nbsp;·&nbsp;
+          <span id="refresh-countdown"></span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 HIVIS Monitor Project</p>
+      <div class="footer-institution">
+        <img
+          src="images/sask-poly-logo.png"
+          alt="Saskatchewan Polytechnic"
+          class="footer-logo"
+          onerror="this.style.display = 'none'"
+        />
+        <span>
+          A
+          <a
+            href="https://saskpolytech.ca"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Saskatchewan Polytechnic</a
+          >
+          Applied Research project &nbsp;·&nbsp; 2026
+        </span>
       </div>
+    </footer>
 
-      <!-- Device cards -->
-      <div class="devices-grid" id="devices-container">
-        <div class="loading">Loading live data…</div>
-      </div>
+    <script>
+      // Hamburger menu
+      const hdr = document.querySelector("header");
+      const hbtn = hdr.querySelector(".hamburger");
+      hbtn.addEventListener("click", () => {
+        const open = hdr.classList.toggle("open");
+        hbtn.setAttribute("aria-expanded", open);
+      });
+      document.addEventListener("click", (e) => {
+        if (!hdr.contains(e.target)) {
+          hdr.classList.remove("open");
+          hbtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    </script>
+    <script>
+      // ═══════════════════════════════════════════════════
+      //  CONFIG
+      // ═══════════════════════════════════════════════════
+      // INFLUX_URL uses the Nginx proxy — never localhost:8086
+      const INFLUX_URL = "/api/v2/query";
+      const INFLUX_ORG = "hivis";
+      const INFLUX_BUCKET = "hivis";
+      const INFLUX_TOKEN =
+        "uWjv9PW_WMP83kXETwxu9qjp2dqCp1mQRhtywSRzAhKYshYcER1Pb4WzvMg42-WSLORkNr3gTA4xVaqrZww0Ww==";
+      const REFRESH_MS = 10_000;
+      const STALE_MS = 3 * 60 * 1000;
 
-      <div style="text-align:center;margin-top:1.5rem;font-size:12px;color:rgba(255,255,255,0.3)">
-        Auto-refreshes every 10 s &nbsp;·&nbsp; <span id="refresh-countdown"></span>
-      </div>
-    </section>
-  </main>
+      // ═══════════════════════════════════════════════════
+      //  STATE
+      // ═══════════════════════════════════════════════════
+      let devicesData = {}; // device_id → device object
+      let expandedDevice = null;
+      let activeChart = null;
+      let countdown = REFRESH_MS / 1000;
+      let countdownId = null;
 
-  <footer>
-    <p>&copy; 2026 HIVIS Monitor Project</p>
-    <div class="footer-institution">
-      <img src="images/sask-poly-logo.png" alt="Saskatchewan Polytechnic" class="footer-logo"
-           onerror="this.style.display='none'">
-      <span>
-        A <a href="https://saskpolytech.ca" target="_blank" rel="noopener noreferrer">Saskatchewan Polytechnic</a>
-        Applied Research project &nbsp;·&nbsp; 2026
-      </span>
-    </div>
-  </footer>
-
-  <script>
-  // Hamburger menu
-  const hdr = document.querySelector('header');
-  const hbtn = hdr.querySelector('.hamburger');
-  hbtn.addEventListener('click', () => {
-    const open = hdr.classList.toggle('open');
-    hbtn.setAttribute('aria-expanded', open);
-  });
-  document.addEventListener('click', e => {
-    if (!hdr.contains(e.target)) {
-      hdr.classList.remove('open');
-      hbtn.setAttribute('aria-expanded', 'false');
-    }
-  });
-  </script>
-  <script>
-  // ═══════════════════════════════════════════════════
-  //  CONFIG
-  // ═══════════════════════════════════════════════════
-  // INFLUX_URL uses the Nginx proxy — never localhost:8086
-  const INFLUX_URL   = '/api/v2/query';
-  const INFLUX_ORG   = 'hivis';
-  const INFLUX_BUCKET = 'hivis';
-  const INFLUX_TOKEN = 'uWjv9PW_WMP83kXETwxu9qjp2dqCp1mQRhtywSRzAhKYshYcER1Pb4WzvMg42-WSLORkNr3gTA4xVaqrZww0Ww==';
-  const REFRESH_MS   = 10_000;
-  const STALE_MS     = 3 * 60 * 1000;
-
-  // ═══════════════════════════════════════════════════
-  //  STATE
-  // ═══════════════════════════════════════════════════
-  let devicesData    = {};   // device_id → device object
-  let expandedDevice = null;
-  let activeChart    = null;
-  let countdown      = REFRESH_MS / 1000;
-  let countdownId    = null;
-
-  // ═══════════════════════════════════════════════════
-  //  INFLUXDB — Fetch + CSV parser
-  // ═══════════════════════════════════════════════════
-  async function queryInflux(flux) {
-    const res = await fetch(`${INFLUX_URL}?org=${encodeURIComponent(INFLUX_ORG)}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${INFLUX_TOKEN}`,
-        'Content-Type':  'application/vnd.flux',
-        'Accept':        'application/csv',
-      },
-      body: flux,
-    });
-    if (!res.ok) {
-      const msg = await res.text().catch(() => '');
-      throw new Error(`InfluxDB ${res.status}: ${msg.slice(0, 200)}`);
-    }
-    return parseInfluxCSV(await res.text());
-  }
-
-  // Parses InfluxDB annotated CSV format.
-  // Handles multiple table blocks separated by blank lines.
-  function parseInfluxCSV(text) {
-    const rows    = [];
-    let   headers = null;
-
-    for (const raw of text.split('\n')) {
-      const line = raw.trim();
-      if (!line) { headers = null; continue; }  // blank = new table block
-      if (line.startsWith('#')) continue;         // annotation line
-
-      const cols = splitCSV(raw);
-      if (!headers) { headers = cols.map(c => c.trim()); continue; }
-      if (cols.length < 2) continue;
-
-      const row = {};
-      for (let i = 0; i < headers.length; i++) {
-        const key = headers[i];
-        if (key) row[key] = (cols[i] ?? '').trim();
+      // ═══════════════════════════════════════════════════
+      //  INFLUXDB — Fetch + CSV parser
+      // ═══════════════════════════════════════════════════
+      async function queryInflux(flux) {
+        const res = await fetch(
+          `${INFLUX_URL}?org=${encodeURIComponent(INFLUX_ORG)}`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Token ${INFLUX_TOKEN}`,
+              "Content-Type": "application/vnd.flux",
+              Accept: "application/csv",
+            },
+            body: flux,
+          },
+        );
+        if (!res.ok) {
+          const msg = await res.text().catch(() => "");
+          throw new Error(`InfluxDB ${res.status}: ${msg.slice(0, 200)}`);
+        }
+        return parseInfluxCSV(await res.text());
       }
-      rows.push(row);
-    }
-    return rows;
-  }
 
-  function splitCSV(line) {
-    const out = []; let cur = ''; let inQ = false;
-    for (const ch of line) {
-      if (ch === '"') { inQ = !inQ; }
-      else if (ch === ',' && !inQ) { out.push(cur); cur = ''; }
-      else { cur += ch; }
-    }
-    out.push(cur);
-    return out;
-  }
+      // Parses InfluxDB annotated CSV format.
+      // Handles multiple table blocks separated by blank lines.
+      function parseInfluxCSV(text) {
+        const rows = [];
+        let headers = null;
 
-  // ═══════════════════════════════════════════════════
-  //  DATA PROCESSING
-  // ═══════════════════════════════════════════════════
-  function processFleetRows(rows) {
-    const map = {};
-    for (const row of rows) {
-      const id = row.device_id;
-      if (!id) continue;
-      if (!map[id]) {
-        map[id] = {
-          id,
-          name:      row.device_name || id,
-          group:     row.group || 'default',
-          last_time: null,
-          f: {},
-        };
+        for (const raw of text.split("\n")) {
+          const line = raw.trim();
+          if (!line) {
+            headers = null;
+            continue;
+          } // blank = new table block
+          if (line.startsWith("#")) continue; // annotation line
+
+          const cols = splitCSV(raw);
+          if (!headers) {
+            headers = cols.map((c) => c.trim());
+            continue;
+          }
+          if (cols.length < 2) continue;
+
+          const row = {};
+          for (let i = 0; i < headers.length; i++) {
+            const key = headers[i];
+            if (key) row[key] = (cols[i] ?? "").trim();
+          }
+          rows.push(row);
+        }
+        return rows;
       }
-      const d = map[id];
-      const t = row._time ? new Date(row._time) : null;
-      if (t && (!d.last_time || t > d.last_time)) d.last_time = t;
-      if (row._field && row._value !== '') {
-        const v = parseFloat(row._value);
-        if (!isNaN(v)) d.f[row._field] = v;
+
+      function splitCSV(line) {
+        const out = [];
+        let cur = "";
+        let inQ = false;
+        for (const ch of line) {
+          if (ch === '"') {
+            inQ = !inQ;
+          } else if (ch === "," && !inQ) {
+            out.push(cur);
+            cur = "";
+          } else {
+            cur += ch;
+          }
+        }
+        out.push(cur);
+        return out;
       }
-    }
-    return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
-  }
 
-  function processHistoryRows(rows) {
-    // Returns { fieldName: [{time, value}, ...], ... }
-    const series = {};
-    for (const row of rows) {
-      if (!row._field || !row._time || row._value === '') continue;
-      if (!series[row._field]) series[row._field] = [];
-      series[row._field].push({ time: new Date(row._time), value: parseFloat(row._value) });
-    }
-    return series;
-  }
+      // ═══════════════════════════════════════════════════
+      //  DATA PROCESSING
+      // ═══════════════════════════════════════════════════
+      function processFleetRows(rows) {
+        const map = {};
+        for (const row of rows) {
+          const id = row.device_id;
+          if (!id) continue;
+          if (!map[id]) {
+            map[id] = {
+              id,
+              name: row.device_name || id,
+              group: row.group || "default",
+              last_time: null,
+              f: {},
+            };
+          }
+          const d = map[id];
+          const t = row._time ? new Date(row._time) : null;
+          if (t && (!d.last_time || t > d.last_time)) d.last_time = t;
+          if (row._field && row._value !== "") {
+            const v = parseFloat(row._value);
+            if (!isNaN(v)) d.f[row._field] = v;
+          }
+        }
+        return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+      }
 
-  function fv(device, field, def = null) {
-    const v = device.f[field];
-    return (v !== undefined && !isNaN(v)) ? v : def;
-  }
+      function processHistoryRows(rows) {
+        // Returns { fieldName: [{time, value}, ...], ... }
+        const series = {};
+        for (const row of rows) {
+          if (!row._field || !row._time || row._value === "") continue;
+          if (!series[row._field]) series[row._field] = [];
+          series[row._field].push({
+            time: new Date(row._time),
+            value: parseFloat(row._value),
+          });
+        }
+        return series;
+      }
 
-  function fmt(v, dec, suffix) {
-    return (v === null) ? '—' : v.toFixed(dec) + suffix;
-  }
+      function fv(device, field, def = null) {
+        const v = device.f[field];
+        return v !== undefined && !isNaN(v) ? v : def;
+      }
 
-  function timeAgo(date) {
-    if (!date) return '—';
-    const s = Math.floor((Date.now() - date) / 1000);
-    if (s < 5)    return 'just now';
-    if (s < 60)   return `${s}s ago`;
-    if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-    return `${Math.floor(s / 3600)}h ago`;
-  }
+      function fmt(v, dec, suffix) {
+        return v === null ? "—" : v.toFixed(dec) + suffix;
+      }
 
-  function esc(s) {
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
-  }
+      function timeAgo(date) {
+        if (!date) return "—";
+        const s = Math.floor((Date.now() - date) / 1000);
+        if (s < 5) return "just now";
+        if (s < 60) return `${s}s ago`;
+        if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+        return `${Math.floor(s / 3600)}h ago`;
+      }
 
-  // ═══════════════════════════════════════════════════
-  //  FLEET REFRESH
-  // ═══════════════════════════════════════════════════
-  const FLEET_FLUX = `
+      function esc(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#x27;");
+      }
+
+      // ═══════════════════════════════════════════════════
+      //  FLEET REFRESH
+      // ═══════════════════════════════════════════════════
+      const FLEET_FLUX = `
 from(bucket: "${INFLUX_BUCKET}")
   |> range(start: -15m)
   |> filter(fn: (r) => r._measurement == "air_quality")
@@ -1301,83 +1786,96 @@ from(bucket: "${INFLUX_BUCKET}")
   |> drop(columns: ["backfill"])
   |> last()`;
 
-  async function fetchFleetData() {
-    try {
-      const rows    = await queryInflux(FLEET_FLUX);
-      const devList = processFleetRows(rows);
-      devicesData   = Object.fromEntries(devList.map(d => [d.id, d]));
+      async function fetchFleetData() {
+        try {
+          const rows = await queryInflux(FLEET_FLUX);
+          const devList = processFleetRows(rows);
+          devicesData = Object.fromEntries(devList.map((d) => [d.id, d]));
 
-      renderFleetSummary(devList);
-      renderDeviceCards(devList);
-      setLiveStatus('ok', `${devList.length} device${devList.length !== 1 ? 's' : ''} online`);
-      clearError();
-    } catch (err) {
-      console.error('[HIVIS]', err);
-      setLiveStatus('error', 'Connection error');
-      showError(`Unable to load data: ${err.message}`);
-    }
-  }
-
-  function renderFleetSummary(devList) {
-    document.getElementById('active-devices').textContent = devList.length || '—';
-
-    let totalCO2 = 0, totalIAQ = 0, count = 0;
-    for (const d of devList) {
-      const co2 = fv(d, 'co2'), iaq = fv(d, 'iaq');
-      if (co2 !== null) totalCO2 += co2;
-      if (iaq !== null) totalIAQ += iaq;
-      count++;
-    }
-    document.getElementById('avg-eco2').textContent = count ? Math.round(totalCO2 / count) : '—';
-    document.getElementById('avg-iaq').textContent  = count ? Math.round(totalIAQ / count) : '—';
-  }
-
-  function renderDeviceCards(devList) {
-    const container = document.getElementById('devices-container');
-    if (devList.length === 0) {
-      container.innerHTML = '<div class="no-data">No devices reporting in the last 15 minutes.</div>';
-      return;
-    }
-
-    // Preserve expanded state across re-renders
-    container.innerHTML = devList.map(d => deviceCardHTML(d)).join('');
-
-    // Re-expand if a device was expanded before
-    if (expandedDevice && devicesData[expandedDevice]) {
-      const card = document.getElementById(`device-${expandedDevice}`);
-      if (card) {
-        card.classList.add('expanded');
-        card.querySelector('.expand-hint').style.display = 'none';
-        loadDeviceChart(expandedDevice, '1h');
+          renderFleetSummary(devList);
+          renderDeviceCards(devList);
+          setLiveStatus(
+            "ok",
+            `${devList.length} device${devList.length !== 1 ? "s" : ""} online`,
+          );
+          clearError();
+        } catch (err) {
+          console.error("[HIVIS]", err);
+          setLiveStatus("error", "Connection error");
+          showError(`Unable to load data: ${err.message}`);
+        }
       }
-    }
 
-    // Attach click handlers
-    for (const d of devList) {
-      document.getElementById(`device-${d.id}`)
-        .addEventListener('click', (e) => {
-          // Don't collapse when clicking controls inside expanded card
-          if (e.target.closest('.device-expanded-content')) return;
-          toggleExpand(d.id);
-        });
-    }
-  }
+      function renderFleetSummary(devList) {
+        document.getElementById("active-devices").textContent =
+          devList.length || "—";
 
-  function deviceCardHTML(d) {
-    const stale = d.last_time && (Date.now() - d.last_time > STALE_MS);
-    const temp  = fv(d, 'temp');
-    const hum   = fv(d, 'hum');
-    const co2   = fv(d, 'co2');
-    const bvoc  = fv(d, 'bvoc');
-    const db    = fv(d, 'db');
-    const bat   = fv(d, 'bat_pct');
-    const rssi  = fv(d, 'rssi');
-    const acc   = fv(d, 'accuracy');
-    const iaq   = fv(d, 'iaq');
+        let totalCO2 = 0,
+          totalIAQ = 0,
+          count = 0;
+        for (const d of devList) {
+          const co2 = fv(d, "co2"),
+            iaq = fv(d, "iaq");
+          if (co2 !== null) totalCO2 += co2;
+          if (iaq !== null) totalIAQ += iaq;
+          count++;
+        }
+        document.getElementById("avg-eco2").textContent = count
+          ? Math.round(totalCO2 / count)
+          : "—";
+        document.getElementById("avg-iaq").textContent = count
+          ? Math.round(totalIAQ / count)
+          : "—";
+      }
 
-    const accLabels = ['Calibrating', 'Low', 'Medium', 'Optimal'];
+      function renderDeviceCards(devList) {
+        const container = document.getElementById("devices-container");
+        if (devList.length === 0) {
+          container.innerHTML =
+            '<div class="no-data">No devices reporting in the last 15 minutes.</div>';
+          return;
+        }
 
-    return `
+        // Preserve expanded state across re-renders
+        container.innerHTML = devList.map((d) => deviceCardHTML(d)).join("");
+
+        // Re-expand if a device was expanded before
+        if (expandedDevice && devicesData[expandedDevice]) {
+          const card = document.getElementById(`device-${expandedDevice}`);
+          if (card) {
+            card.classList.add("expanded");
+            card.querySelector(".expand-hint").style.display = "none";
+            loadDeviceChart(expandedDevice, "1h");
+          }
+        }
+
+        // Attach click handlers
+        for (const d of devList) {
+          document
+            .getElementById(`device-${d.id}`)
+            .addEventListener("click", (e) => {
+              // Don't collapse when clicking controls inside expanded card
+              if (e.target.closest(".device-expanded-content")) return;
+              toggleExpand(d.id);
+            });
+        }
+      }
+
+      function deviceCardHTML(d) {
+        const stale = d.last_time && Date.now() - d.last_time > STALE_MS;
+        const temp = fv(d, "temp");
+        const hum = fv(d, "hum");
+        const co2 = fv(d, "co2");
+        const bvoc = fv(d, "bvoc");
+        const db = fv(d, "db");
+        const bat = fv(d, "bat_pct");
+        const rssi = fv(d, "rssi");
+        const acc = fv(d, "accuracy");
+        const iaq = fv(d, "iaq");
+
+        const accLabels = ["Calibrating", "Low", "Medium", "Optimal"];
+
+        return `
 <div class="device-card" id="device-${esc(d.id)}">
   <div class="device-header">
     <div>
@@ -1386,32 +1884,32 @@ from(bucket: "${INFLUX_BUCKET}")
     </div>
     <div>
       <div class="device-status">
-        <div class="status-dot" style="${stale ? 'background:#f87171;animation:none' : ''}"></div>
-        <span>${stale ? 'Stale' : 'Live'}</span>
+        <div class="status-dot" style="${stale ? "background:#f87171;animation:none" : ""}"></div>
+        <span>${stale ? "Stale" : "Live"}</span>
       </div>
-      <div class="last-seen" id="ls-${esc(d.id)}">${d.last_time ? timeAgo(d.last_time) : '—'}</div>
+      <div class="last-seen" id="ls-${esc(d.id)}">${d.last_time ? timeAgo(d.last_time) : "—"}</div>
     </div>
   </div>
 
   <div class="device-metrics-grid">
     <div class="metric-item teal">
       <div class="metric-item-label">eCO₂</div>
-      <div class="metric-item-value">${co2 !== null ? Math.round(co2) : '—'}</div>
+      <div class="metric-item-value">${co2 !== null ? Math.round(co2) : "—"}</div>
       <div class="metric-item-unit">ppm</div>
     </div>
     <div class="metric-item amber">
       <div class="metric-item-label">bVOC</div>
-      <div class="metric-item-value">${bvoc !== null ? bvoc.toFixed(2) : '—'}</div>
+      <div class="metric-item-value">${bvoc !== null ? bvoc.toFixed(2) : "—"}</div>
       <div class="metric-item-unit">ppm</div>
     </div>
     <div class="metric-item teal">
       <div class="metric-item-label">Temperature</div>
-      <div class="metric-item-value">${temp !== null ? temp.toFixed(1) : '—'}</div>
+      <div class="metric-item-value">${temp !== null ? temp.toFixed(1) : "—"}</div>
       <div class="metric-item-unit">°C</div>
     </div>
     <div class="metric-item amber">
       <div class="metric-item-label">Humidity</div>
-      <div class="metric-item-value">${hum !== null ? Math.round(hum) : '—'}</div>
+      <div class="metric-item-value">${hum !== null ? Math.round(hum) : "—"}</div>
       <div class="metric-item-unit">%</div>
     </div>
   </div>
@@ -1422,28 +1920,28 @@ from(bucket: "${INFLUX_BUCKET}")
     <div class="expanded-metrics">
       <div class="expanded-metric amber">
         <div class="expanded-metric-label">IAQ Score</div>
-        <div class="expanded-metric-value">${iaq !== null ? Math.round(iaq) : '—'}</div>
+        <div class="expanded-metric-value">${iaq !== null ? Math.round(iaq) : "—"}</div>
         <div class="expanded-metric-unit">/ 500</div>
       </div>
       <div class="expanded-metric teal">
         <div class="expanded-metric-label">Sound</div>
-        <div class="expanded-metric-value">${db !== null ? Math.round(db) : '—'}</div>
+        <div class="expanded-metric-value">${db !== null ? Math.round(db) : "—"}</div>
         <div class="expanded-metric-unit">dB</div>
       </div>
       <div class="expanded-metric amber">
         <div class="expanded-metric-label">Battery</div>
-        <div class="expanded-metric-value">${bat !== null ? Math.round(bat) : '—'}</div>
+        <div class="expanded-metric-value">${bat !== null ? Math.round(bat) : "—"}</div>
         <div class="expanded-metric-unit">%</div>
       </div>
       <div class="expanded-metric teal">
         <div class="expanded-metric-label">RSSI</div>
-        <div class="expanded-metric-value">${rssi !== null ? Math.round(rssi) : '—'}</div>
+        <div class="expanded-metric-value">${rssi !== null ? Math.round(rssi) : "—"}</div>
         <div class="expanded-metric-unit">dBm</div>
       </div>
       <div class="expanded-metric teal">
         <div class="expanded-metric-label">BSEC Accuracy</div>
         <div class="expanded-metric-value" style="font-size:13px">
-          ${acc !== null ? (accLabels[Math.round(acc)] ?? '—') : '—'}
+          ${acc !== null ? (accLabels[Math.round(acc)] ?? "—") : "—"}
         </div>
         <div class="expanded-metric-unit">&nbsp;</div>
       </div>
@@ -1463,65 +1961,79 @@ from(bucket: "${INFLUX_BUCKET}")
     <button class="collapse-btn" onclick="toggleExpand('${esc(d.id)}')">▴ Collapse</button>
   </div>
 </div>`;
-  }
-
-  // ═══════════════════════════════════════════════════
-  //  EXPAND / COLLAPSE
-  // ═══════════════════════════════════════════════════
-  function toggleExpand(deviceId) {
-    if (expandedDevice === deviceId) {
-      // Collapse
-      const card = document.getElementById(`device-${deviceId}`);
-      card.classList.remove('expanded');
-      card.querySelector('.expand-hint').style.display = '';
-      if (activeChart) { activeChart.destroy(); activeChart = null; }
-      expandedDevice = null;
-    } else {
-      // Collapse any currently expanded card
-      if (expandedDevice) {
-        const prev = document.getElementById(`device-${expandedDevice}`);
-        if (prev) {
-          prev.classList.remove('expanded');
-          prev.querySelector('.expand-hint').style.display = '';
-        }
-        if (activeChart) { activeChart.destroy(); activeChart = null; }
       }
 
-      const card = document.getElementById(`device-${deviceId}`);
-      card.classList.add('expanded');
-      card.querySelector('.expand-hint').style.display = 'none';
-      expandedDevice = deviceId;
+      // ═══════════════════════════════════════════════════
+      //  EXPAND / COLLAPSE
+      // ═══════════════════════════════════════════════════
+      function toggleExpand(deviceId) {
+        if (expandedDevice === deviceId) {
+          // Collapse
+          const card = document.getElementById(`device-${deviceId}`);
+          card.classList.remove("expanded");
+          card.querySelector(".expand-hint").style.display = "";
+          if (activeChart) {
+            activeChart.destroy();
+            activeChart = null;
+          }
+          expandedDevice = null;
+        } else {
+          // Collapse any currently expanded card
+          if (expandedDevice) {
+            const prev = document.getElementById(`device-${expandedDevice}`);
+            if (prev) {
+              prev.classList.remove("expanded");
+              prev.querySelector(".expand-hint").style.display = "";
+            }
+            if (activeChart) {
+              activeChart.destroy();
+              activeChart = null;
+            }
+          }
 
-      // Scroll into view a little
-      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-      loadDeviceChart(deviceId, '1h');
-    }
-  }
+          const card = document.getElementById(`device-${deviceId}`);
+          card.classList.add("expanded");
+          card.querySelector(".expand-hint").style.display = "none";
+          expandedDevice = deviceId;
 
-  function changeRange(event, deviceId, range) {
-    event.stopPropagation();
-    const card = document.getElementById(`device-${deviceId}`);
-    card.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    loadDeviceChart(deviceId, range);
-  }
+          // Scroll into view a little
+          setTimeout(
+            () => card.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+            50,
+          );
+          loadDeviceChart(deviceId, "1h");
+        }
+      }
 
-  // ═══════════════════════════════════════════════════
-  //  HISTORICAL CHART
-  // ═══════════════════════════════════════════════════
-  const WIN_MAP = { '1h': '30s', '6h': '3m', '24h': '10m' };
+      function changeRange(event, deviceId, range) {
+        event.stopPropagation();
+        const card = document.getElementById(`device-${deviceId}`);
+        card
+          .querySelectorAll(".range-btn")
+          .forEach((b) => b.classList.remove("active"));
+        event.target.classList.add("active");
+        loadDeviceChart(deviceId, range);
+      }
 
-  async function loadDeviceChart(deviceId, range) {
-    const loading = document.getElementById(`chart-loading-${deviceId}`);
-    const canvas  = document.getElementById(`chart-${deviceId}`);
-    if (!loading || !canvas) return;
+      // ═══════════════════════════════════════════════════
+      //  HISTORICAL CHART
+      // ═══════════════════════════════════════════════════
+      const WIN_MAP = { "1h": "30s", "6h": "3m", "24h": "10m" };
 
-    if (activeChart) { activeChart.destroy(); activeChart = null; }
-    loading.style.display = '';
-    canvas.style.display  = 'none';
+      async function loadDeviceChart(deviceId, range) {
+        const loading = document.getElementById(`chart-loading-${deviceId}`);
+        const canvas = document.getElementById(`chart-${deviceId}`);
+        if (!loading || !canvas) return;
 
-    const win = WIN_MAP[range] || '30s';
-    const flux = `
+        if (activeChart) {
+          activeChart.destroy();
+          activeChart = null;
+        }
+        loading.style.display = "";
+        canvas.style.display = "none";
+
+        const win = WIN_MAP[range] || "30s";
+        const flux = `
 from(bucket: "${INFLUX_BUCKET}")
   |> range(start: -${range})
   |> filter(fn: (r) => r._measurement == "air_quality")
@@ -1530,168 +2042,191 @@ from(bucket: "${INFLUX_BUCKET}")
   |> drop(columns: ["backfill"])
   |> aggregateWindow(every: ${win}, fn: mean, createEmpty: false)`;
 
-    try {
-      const rows   = await queryInflux(flux);
-      const series = processHistoryRows(rows);
+        try {
+          const rows = await queryInflux(flux);
+          const series = processHistoryRows(rows);
 
-      loading.style.display = 'none';
-      canvas.style.display  = '';
+          loading.style.display = "none";
+          canvas.style.display = "";
 
-      // Build labels from the union of all timestamps
-      const allTimes = [...new Set(
-        Object.values(series).flatMap(s => s.map(p => p.time.getTime()))
-      )].sort((a, b) => a - b);
+          // Build labels from the union of all timestamps
+          const allTimes = [
+            ...new Set(
+              Object.values(series).flatMap((s) =>
+                s.map((p) => p.time.getTime()),
+              ),
+            ),
+          ].sort((a, b) => a - b);
 
-      const labels = allTimes.map(t => {
-        const d = new Date(t);
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      });
+          const labels = allTimes.map((t) => {
+            const d = new Date(t);
+            return d.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          });
 
-      function seriesData(field) {
-        if (!series[field]) return allTimes.map(() => null);
-        const byTime = Object.fromEntries(series[field].map(p => [p.time.getTime(), p.value]));
-        return allTimes.map(t => byTime[t] ?? null);
-      }
-
-      activeChart = new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'eCO₂ (ppm)',
-              data: seriesData('co2'),
-              borderColor: '#a7f3d0',
-              backgroundColor: 'rgba(167,243,208,0.1)',
-              borderWidth: 2,
-              tension: 0.3,
-              fill: true,
-              spanGaps: true,
-            },
-            {
-              label: 'IAQ',
-              data: seriesData('iaq'),
-              borderColor: '#fbbf24',
-              backgroundColor: 'rgba(251,191,36,0.1)',
-              borderWidth: 2,
-              tension: 0.3,
-              fill: true,
-              spanGaps: true,
-              yAxisID: 'y1',
-            },
-            {
-              label: 'Noise (dB)',
-              data: seriesData('db'),
-              borderColor: '#f0883e',
-              backgroundColor: 'rgba(240,136,62,0.1)',
-              borderWidth: 1.5,
-              tension: 0.3,
-              fill: false,
-              spanGaps: true,
-              yAxisID: 'y2',
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            legend: {
-              labels: { color: 'rgba(255,255,255,0.7)', font: { size: 11 }, boxWidth: 12 }
-            },
-            tooltip: {
-              backgroundColor: 'rgba(13,17,23,0.95)',
-              borderColor: 'rgba(167,243,208,0.2)',
-              borderWidth: 1,
-              titleColor: '#fff',
-              bodyColor: 'rgba(255,255,255,0.7)',
-            }
-          },
-          scales: {
-            x: {
-              ticks: {
-                color: 'rgba(255,255,255,0.4)',
-                font: { size: 10 },
-                maxTicksLimit: 8,
-              },
-              grid: { color: 'rgba(255,255,255,0.06)' }
-            },
-            y: {
-              ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } },
-              grid: { color: 'rgba(255,255,255,0.06)' },
-              title: { display: true, text: 'eCO₂ (ppm)', color: '#a7f3d0', font: { size: 10 } }
-            },
-            y1: {
-              position: 'right',
-              ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } },
-              grid: { display: false },
-              title: { display: true, text: 'IAQ', color: '#fbbf24', font: { size: 10 } }
-            },
-            y2: {
-              position: 'right',
-              ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } },
-              grid: { display: false },
-              display: false,
-            }
+          function seriesData(field) {
+            if (!series[field]) return allTimes.map(() => null);
+            const byTime = Object.fromEntries(
+              series[field].map((p) => [p.time.getTime(), p.value]),
+            );
+            return allTimes.map((t) => byTime[t] ?? null);
           }
+
+          activeChart = new Chart(canvas.getContext("2d"), {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "eCO₂ (ppm)",
+                  data: seriesData("co2"),
+                  borderColor: "#a7f3d0",
+                  backgroundColor: "rgba(167,243,208,0.1)",
+                  borderWidth: 2,
+                  tension: 0.3,
+                  fill: true,
+                  spanGaps: true,
+                },
+                {
+                  label: "IAQ",
+                  data: seriesData("iaq"),
+                  borderColor: "#fbbf24",
+                  backgroundColor: "rgba(251,191,36,0.1)",
+                  borderWidth: 2,
+                  tension: 0.3,
+                  fill: true,
+                  spanGaps: true,
+                  yAxisID: "y1",
+                },
+                {
+                  label: "Noise (dB)",
+                  data: seriesData("db"),
+                  borderColor: "#f0883e",
+                  backgroundColor: "rgba(240,136,62,0.1)",
+                  borderWidth: 1.5,
+                  tension: 0.3,
+                  fill: false,
+                  spanGaps: true,
+                  yAxisID: "y2",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: {
+                  labels: {
+                    color: "rgba(255,255,255,0.7)",
+                    font: { size: 11 },
+                    boxWidth: 12,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: "rgba(13,17,23,0.95)",
+                  borderColor: "rgba(167,243,208,0.2)",
+                  borderWidth: 1,
+                  titleColor: "#fff",
+                  bodyColor: "rgba(255,255,255,0.7)",
+                },
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: "rgba(255,255,255,0.4)",
+                    font: { size: 10 },
+                    maxTicksLimit: 8,
+                  },
+                  grid: { color: "rgba(255,255,255,0.06)" },
+                },
+                y: {
+                  ticks: { color: "rgba(255,255,255,0.4)", font: { size: 10 } },
+                  grid: { color: "rgba(255,255,255,0.06)" },
+                  title: {
+                    display: true,
+                    text: "eCO₂ (ppm)",
+                    color: "#a7f3d0",
+                    font: { size: 10 },
+                  },
+                },
+                y1: {
+                  position: "right",
+                  ticks: { color: "rgba(255,255,255,0.4)", font: { size: 10 } },
+                  grid: { display: false },
+                  title: {
+                    display: true,
+                    text: "IAQ",
+                    color: "#fbbf24",
+                    font: { size: 10 },
+                  },
+                },
+                y2: {
+                  position: "right",
+                  ticks: { color: "rgba(255,255,255,0.4)", font: { size: 10 } },
+                  grid: { display: false },
+                  display: false,
+                },
+              },
+            },
+          });
+        } catch (err) {
+          loading.textContent = `Chart error: ${err.message}`;
+          console.error("[HIVIS chart]", err);
         }
-      });
-    } catch (err) {
-      loading.textContent = `Chart error: ${err.message}`;
-      console.error('[HIVIS chart]', err);
-    }
-  }
-
-  // ═══════════════════════════════════════════════════
-  //  STATUS + ERROR
-  // ═══════════════════════════════════════════════════
-  function setLiveStatus(type, text) {
-    const dot  = document.getElementById('live-dot');
-    const span = document.getElementById('live-text');
-    dot.className  = `live-dot ${type}`;
-    span.textContent = text;
-  }
-
-  function showError(msg) {
-    document.getElementById('error-container').innerHTML =
-      `<div class="error-banner">${esc(msg)}</div>`;
-  }
-
-  function clearError() {
-    document.getElementById('error-container').innerHTML = '';
-  }
-
-  // ═══════════════════════════════════════════════════
-  //  COUNTDOWN + REFRESH LOOP
-  // ═══════════════════════════════════════════════════
-  function startCountdown() {
-    countdown = REFRESH_MS / 1000;
-    clearInterval(countdownId);
-    const el = document.getElementById('refresh-countdown');
-    countdownId = setInterval(() => {
-      if (el) el.textContent = `Next refresh in ${countdown}s`;
-      countdown--;
-      if (countdown < 0) {
-        clearInterval(countdownId);
-        fetchFleetData().then(startCountdown);
       }
-    }, 1000);
-  }
 
-  // Live-update "X ago" every 5s without a full refresh
-  setInterval(() => {
-    for (const d of Object.values(devicesData)) {
-      const el = document.getElementById(`ls-${d.id}`);
-      if (el && d.last_time) el.textContent = timeAgo(d.last_time);
-    }
-  }, 5000);
+      // ═══════════════════════════════════════════════════
+      //  STATUS + ERROR
+      // ═══════════════════════════════════════════════════
+      function setLiveStatus(type, text) {
+        const dot = document.getElementById("live-dot");
+        const span = document.getElementById("live-text");
+        dot.className = `live-dot ${type}`;
+        span.textContent = text;
+      }
 
-  // ═══════════════════════════════════════════════════
-  //  INIT
-  // ═══════════════════════════════════════════════════
-  fetchFleetData().then(startCountdown);
-  </script>
-</body>
+      function showError(msg) {
+        document.getElementById("error-container").innerHTML =
+          `<div class="error-banner">${esc(msg)}</div>`;
+      }
+
+      function clearError() {
+        document.getElementById("error-container").innerHTML = "";
+      }
+
+      // ═══════════════════════════════════════════════════
+      //  COUNTDOWN + REFRESH LOOP
+      // ═══════════════════════════════════════════════════
+      function startCountdown() {
+        countdown = REFRESH_MS / 1000;
+        clearInterval(countdownId);
+        const el = document.getElementById("refresh-countdown");
+        countdownId = setInterval(() => {
+          if (el) el.textContent = `Next refresh in ${countdown}s`;
+          countdown--;
+          if (countdown < 0) {
+            clearInterval(countdownId);
+            fetchFleetData().then(startCountdown);
+          }
+        }, 1000);
+      }
+
+      // Live-update "X ago" every 5s without a full refresh
+      setInterval(() => {
+        for (const d of Object.values(devicesData)) {
+          const el = document.getElementById(`ls-${d.id}`);
+          if (el && d.last_time) el.textContent = timeAgo(d.last_time);
+        }
+      }, 5000);
+
+      // ═══════════════════════════════════════════════════
+      //  INIT
+      // ═══════════════════════════════════════════════════
+      fetchFleetData().then(startCountdown);
+    </script>
+  </body>
 </html>
