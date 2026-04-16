@@ -6,6 +6,10 @@
 #          proxies /api/v2/query to InfluxDB (internal)
 #
 #  Requires cert at /etc/letsencrypt/live/hvht.net/
+#
+#  Environment variables (substituted at container start via envsubst):
+#    INFLUX_TOKEN  — InfluxDB read-only token, injected server-side.
+#                    Never sent to browsers.
 # ─────────────────────────────────────────────────────
 
 # ── HTTP: redirect + ACME renewal ──────────────────────
@@ -55,15 +59,15 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # InfluxDB query proxy — only exposes the /api/v2/query endpoint.
-    # The browser sends its Authorization token; Nginx forwards it unchanged.
-    # This keeps InfluxDB off the public internet while the website works from
-    # any external browser.
+    # InfluxDB query proxy — injects the token server-side.
+    # The browser sends no Authorization header; nginx adds it here.
+    # INFLUX_TOKEN is provided as a container environment variable.
     location = /api/v2/query {
         proxy_pass         http://influxdb:8086/api/v2/query;
         proxy_http_version 1.1;
-        proxy_set_header   Connection  "";
-        proxy_set_header   Host        influxdb;
+        proxy_set_header   Connection    "";
+        proxy_set_header   Host          influxdb;
+        proxy_set_header   Authorization "Token ${INFLUX_TOKEN}";
 
         proxy_connect_timeout  5s;
         proxy_read_timeout    30s;

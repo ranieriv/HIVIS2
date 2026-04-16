@@ -29,6 +29,7 @@ services:
       - influxdb
     environment:
       - TZ=America/Regina
+      - PROVISION_SECRET=_QYf_IIpIc3WAQMmWskCj0Zrfeeasjmx1irFq7aoi0M
     networks:
       - hivis-net
 
@@ -80,6 +81,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./mosquitto/config:/mosquitto/config
     command: sh -c "pip install docker -q && python server.py"
+    environment:
+      - PROVISION_SECRET=_QYf_IIpIc3WAQMmWskCj0Zrfeeasjmx1irFq7aoi0M
     ports:
       - "8090:8090"
     networks:
@@ -95,9 +98,11 @@ services:
       - "443:443"
     volumes:
       - ./website:/usr/share/nginx/html:ro      # dashboard HTML
-      - ./nginx:/etc/nginx/conf.d:ro             # nginx config
+      - ./nginx:/etc/nginx/templates:ro          # nginx config templates (envsubst processed at startup)
       - certbot-conf:/etc/letsencrypt:ro         # SSL certificate (read-only)
       - certbot-www:/var/www/certbot:ro          # ACME webroot (read-only)
+    environment:
+      - INFLUX_TOKEN=Za98Zvpdj34sJhmbXrYvCGcM97XQqfatMllop7Ph6q6jNwrmh__hNrMjFd2USENqzMpoVRQ9qjk_0TX74hurEg==
     depends_on:
       - influxdb
     networks:

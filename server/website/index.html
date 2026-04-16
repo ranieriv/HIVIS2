@@ -1611,12 +1611,11 @@
       // ═══════════════════════════════════════════════════
       //  CONFIG
       // ═══════════════════════════════════════════════════
-      // INFLUX_URL uses the Nginx proxy — never localhost:8086
+      // INFLUX_URL uses the Nginx proxy — never localhost:8086.
+      // The Authorization token is injected server-side by Nginx; no token needed here.
       const INFLUX_URL = "/api/v2/query";
       const INFLUX_ORG = "hivis";
       const INFLUX_BUCKET = "hivis";
-      const INFLUX_TOKEN =
-        "uWjv9PW_WMP83kXETwxu9qjp2dqCp1mQRhtywSRzAhKYshYcER1Pb4WzvMg42-WSLORkNr3gTA4xVaqrZww0Ww==";
       const REFRESH_MS = 10_000;
       const STALE_MS = 3 * 60 * 1000;
 
@@ -1638,7 +1637,6 @@
           {
             method: "POST",
             headers: {
-              Authorization: `Token ${INFLUX_TOKEN}`,
               "Content-Type": "application/vnd.flux",
               Accept: "application/csv",
             },

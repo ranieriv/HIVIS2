@@ -17,8 +17,9 @@ from urllib.parse import parse_qs, urlparse
 
 import docker as docker_sdk
 
-PORT = 8090
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PORT             = 8090
+BASE_DIR         = os.path.dirname(os.path.abspath(__file__))
+PROVISION_SECRET = os.environ.get("PROVISION_SECRET", "")
 DEVICES_FILE  = os.path.join(BASE_DIR, "devices.json")
 FIRMWARE_FILE = os.path.join(BASE_DIR, "firmware", "latest.bin")
 VERSION_FILE  = os.path.join(BASE_DIR, "firmware", "version.txt")
@@ -106,6 +107,12 @@ class OTAHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def _handle_provision(self):
+        if not PROVISION_SECRET or self.headers.get("X-Provision-Token") != PROVISION_SECRET:
+            self.send_response(401)
+            self.end_headers()
+            log("", "POST", "/provision", 401, "missing or invalid X-Provision-Token")
+            return
+
         try:
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length))

@@ -15,8 +15,9 @@ import sys
 
 PORT        = 8080
 WEBSITE_DIR = os.path.join(os.path.dirname(__file__), "website")
-INFLUX_HOST = "172.16.1.156"
-INFLUX_PORT = 8086
+INFLUX_HOST  = "172.16.1.156"
+INFLUX_PORT  = 8086
+INFLUX_TOKEN = os.environ.get("INFLUX_TOKEN", "")
 
 
 class HIVISHandler(http.server.SimpleHTTPRequestHandler):
@@ -38,14 +39,13 @@ class HIVISHandler(http.server.SimpleHTTPRequestHandler):
     def _proxy_influx(self):
         length   = int(self.headers.get("Content-Length", 0))
         body     = self.rfile.read(length) if length else b""
-        auth     = self.headers.get("Authorization", "")
         ct       = self.headers.get("Content-Type", "application/vnd.flux")
         accept   = self.headers.get("Accept", "application/csv")
         qs       = "?" + self.path.split("?", 1)[1] if "?" in self.path else ""
         url      = f"http://{INFLUX_HOST}:{INFLUX_PORT}/api/v2/query{qs}"
 
         req = urllib.request.Request(url, data=body, method="POST")
-        req.add_header("Authorization", auth)
+        req.add_header("Authorization", f"Token {INFLUX_TOKEN}")
         req.add_header("Content-Type", ct)
         req.add_header("Accept", accept)
 
@@ -77,7 +77,7 @@ class HIVISHandler(http.server.SimpleHTTPRequestHandler):
 
     def _cors_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Accept")
         self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 
     def log_message(self, fmt, *args):
@@ -91,6 +91,9 @@ if __name__ == "__main__":
         print(f"ERROR: website directory not found: {WEBSITE_DIR}")
         sys.exit(1)
 
+    if not INFLUX_TOKEN:
+        print("  WARNING: INFLUX_TOKEN env var not set — InfluxDB queries will fail.")
+        print("  Run:  INFLUX_TOKEN=<token> python dev-server.py\n")
     print(f"\n  HIVIS dev server")
     print(f"  Website : {WEBSITE_DIR}")
     print(f"  InfluxDB: http://{INFLUX_HOST}:{INFLUX_PORT}")
