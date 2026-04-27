@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 HIVIS local dev server — serves the website on http://localhost:8080
-and proxies /api/v2/query to InfluxDB on the X200 (172.16.1.156:8086).
+and proxies /api/v2/query to InfluxDB. Set INFLUX_HOST env var to your server IP.
 
 Run from the server/ directory:
     python dev-server.py
@@ -15,7 +15,7 @@ import sys
 
 PORT        = 8080
 WEBSITE_DIR = os.path.join(os.path.dirname(__file__), "website")
-INFLUX_HOST  = "172.16.1.156"
+INFLUX_HOST  = os.environ.get("INFLUX_HOST", "127.0.0.1")
 INFLUX_PORT  = 8086
 INFLUX_TOKEN = os.environ.get("INFLUX_TOKEN", "")
 

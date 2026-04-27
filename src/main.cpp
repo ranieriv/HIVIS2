@@ -28,29 +28,6 @@ bool wasOnline = false;
 int   lastBatPrc = -1;
 float lastBatV   = 0.0f;
 
-// ── Debug WiFi ────────────────────────────────────────────────────────────────
-
-#ifdef DEBUG_WIFI
-static bool tryDebugWifi() {
-    const char* nets[][2] = {
-        { "SKYNET",  "WiFi2024" },
-        { "iPoney",  "R@ni1234" },
-        { "iPhone",  "R@ni1234" },
-    };
-    for (auto& n : nets) {
-        Serial.printf("Debug WiFi: trying '%s'...\n", n[0]);
-        WiFi.begin(n[0], n[1]);
-        unsigned long t = millis();
-        while (WiFi.status() != WL_CONNECTED && millis() - t < 8000) delay(200);
-        if (WiFi.status() == WL_CONNECTED) {
-            Serial.printf("Debug WiFi: connected to '%s'\n", n[0]);
-            return true;
-        }
-        WiFi.disconnect();
-    }
-    return false;
-}
-#endif
 
 // ── MAC helpers ───────────────────────────────────────────────────────────────
 
@@ -148,8 +125,9 @@ static bool registerDevice() {
     Serial.println("Registration: connecting to broker (bootstrap)...");
 
     // Bootstrap connection — shared low-privilege account for unregistered devices
+    // IMPORTANT: Change this password before deploying. Update Mosquitto passwd file to match.
     MqttModule bootstrap(cfg.mqttServer, cfg.mqttPort,
-                         "hivis_bootstrap", "hivishitech2026",
+                         "hivis_bootstrap", "CHANGE_ME_BOOTSTRAP_PASS",
                          cfg.deviceId, cfg.deviceName);
     bootstrap.setMessageCallback(onMqttMessage);
 
@@ -263,15 +241,7 @@ void setup() {
         bool hasSavedNetwork = (WiFi.SSID().length() > 0);
 
         if (!hasSavedNetwork || cfg.mqttServer.isEmpty()) {
-            bool gotWifi = false;
-#ifdef DEBUG_WIFI
-            gotWifi = tryDebugWifi();
-            if (gotWifi) {
-                if (cfg.deviceName.isEmpty()) cfg.deviceName = deriveDeviceId();
-                if (cfg.mqttServer.isEmpty()) cfg.mqttServer = "mqtt.hvht.net";
-            }
-#endif
-            if (!gotWifi) {
+            {
                 Serial.println("3. First boot — launching captive portal...");
                 PortalModule portal;
                 portal.begin();

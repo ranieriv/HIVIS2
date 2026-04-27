@@ -2,7 +2,7 @@
 
 **Version:** 2.0.2
 **Hardware:** ESP32 DOIT DevKit V1 + BME688 + INMP441
-**Server:** Lenovo ThinkPad X200 · Ubuntu · 172.16.1.156
+**Server:** Lenovo ThinkPad X200 · Ubuntu · &lt;SERVER_IP&gt;
 **Public website:** https://hvht.net
 
 ---
@@ -18,7 +18,7 @@
                    │ HTTP     :8090 (OTA)
                    ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Server — 172.16.1.156 / mqtt.hvht.net                      │
+│  Server — &lt;SERVER_IP&gt; / mqtt.hvht.net                      │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │  Mosquitto   │  │   Node-RED   │  │    InfluxDB 2    │  │
 │  │  :8883 TLS   │→ │  :1880       │→ │    :8086         │  │
@@ -157,7 +157,7 @@ Mosquitto: authenticated ✓
 **Add a new device to whitelist** (required before registration is approved):
 ```bash
 # Whitelist lives inside the Node-RED container — edit it directly:
-ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered nano /data/whitelist.json"
+ssh mqttadmin@&lt;SERVER_IP&gt; "docker exec hivis-nodered nano /data/whitelist.json"
 # Add to the "devices" array:
 # { "mac": "AA:BB:CC:DD:EE:FF", "authorized": true, "group": "saskpoly", "notes": "Room X" }
 ```
@@ -179,9 +179,9 @@ POST http://ota-server:8090/provision                  → Add Mosquitto user
 # 2. Build:
 pio run
 # 3. Upload binary:
-scp .pio/build/esp32doit-devkit-v1/firmware.bin mqttadmin@172.16.1.156:/opt/hivis/ota/firmware/latest.bin
+scp .pio/build/esp32doit-devkit-v1/firmware.bin mqttadmin@&lt;SERVER_IP&gt;:/opt/hivis/ota/firmware/latest.bin
 # 4. Update version file:
-ssh mqttadmin@172.16.1.156 "echo '2.0.2' > /opt/hivis/ota/firmware/version.txt"
+ssh mqttadmin@&lt;SERVER_IP&gt; "echo '2.0.2' > /opt/hivis/ota/firmware/version.txt"
 ```
 
 Device checks OTA on every boot (if last check > 24h ago). Update applies automatically and device reboots.
@@ -242,7 +242,7 @@ python -m esptool --port COM7 erase_region 0x9000 0x5000
 | Historical | `/d/hivis-historical` | 7-day trends, backfill annotation |
 
 Login: `admin` / *(see docs/credentials.md)*
-URL: `http://172.16.1.156:3000`
+URL: `http://&lt;SERVER_IP&gt;:3000`
 
 ---
 

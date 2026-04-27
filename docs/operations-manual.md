@@ -1,8 +1,8 @@
 # HIVIS Monitor 2.0 — Operations Manual
 
 **Version:** 2.0.2
-**Server:** 172.16.1.156 (ssh mqttadmin@172.16.1.156 or ssh mqttadmin@mqttserver)
-**Grafana:** http://172.16.1.156:3000 — credentials in docs/credentials.md
+**Server:** &lt;SERVER_IP&gt; (ssh mqttadmin@&lt;SERVER_IP&gt; or ssh mqttadmin@mqttserver)
+**Grafana:** http://&lt;SERVER_IP&gt;:3000 — credentials in docs/credentials.md
 **Public dashboard:** https://hvht.net
 
 ---
@@ -14,7 +14,7 @@ Run this whenever you want to confirm the system is alive.
 ### QC-1 · Docker containers running
 
 ```bash
-ssh mqttadmin@172.16.1.156 "cd /opt/hivis && docker compose ps"
+ssh mqttadmin@&lt;SERVER_IP&gt; "cd /opt/hivis && docker compose ps"
 ```
 
 **Expected:** All 7 containers show `Up` (or `running`).
@@ -49,7 +49,7 @@ cd /opt/hivis && docker compose up -d <service-name>
 
 ### QC-3 · Grafana shows live data (LAN only)
 
-1. Open http://172.16.1.156:3000
+1. Open http://&lt;SERVER_IP&gt;:3000
 2. Go to **Fleet Overview** dashboard (`/d/hivis-fleet`)
 3. Confirm your device appears in the table with a timestamp within the last 10 seconds
 
@@ -95,7 +95,7 @@ Run this after making changes, after a server reboot, or when something isn't wo
 ### FC-1 · Server health — all services
 
 ```bash
-ssh mqttadmin@172.16.1.156 "cd /opt/hivis && docker compose ps && docker compose logs --tail=20"
+ssh mqttadmin@&lt;SERVER_IP&gt; "cd /opt/hivis && docker compose ps && docker compose logs --tail=20"
 ```
 
 Check for error lines in each service log. Common problems:
@@ -112,7 +112,7 @@ Check for error lines in each service log. Common problems:
 
 **Test broker is accepting TLS connections:**
 ```bash
-ssh mqttadmin@172.16.1.156 \
+ssh mqttadmin@&lt;SERVER_IP&gt; \
   "docker exec hivis-mosquitto mosquitto_sub \
      --cafile /mosquitto/certs/ca.crt \
      -h mqtt.hvht.net -p 8883 \
@@ -124,7 +124,7 @@ ssh mqttadmin@172.16.1.156 \
 
 **Check Mosquitto log for recent connections:**
 ```bash
-ssh mqttadmin@172.16.1.156 "tail -50 /opt/hivis/mosquitto/log/mosquitto.log"
+ssh mqttadmin@&lt;SERVER_IP&gt; "tail -50 /opt/hivis/mosquitto/log/mosquitto.log"
 ```
 
 Look for:
@@ -133,7 +133,7 @@ Look for:
 
 **Check active ACL (who can connect):**
 ```bash
-ssh mqttadmin@172.16.1.156 "cat /opt/hivis/mosquitto/config/acl"
+ssh mqttadmin@&lt;SERVER_IP&gt; "cat /opt/hivis/mosquitto/config/acl"
 ```
 
 Your provisioned device should have an entry like:
@@ -173,12 +173,12 @@ If you see `REJECTED` or no response after 30 s:
 
 1. Check whitelist:
 ```bash
-ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered cat /data/whitelist.json"
+ssh mqttadmin@&lt;SERVER_IP&gt; "docker exec hivis-nodered cat /data/whitelist.json"
 ```
 
 2. Add device MAC if missing (whitelist lives inside the Node-RED container):
 ```bash
-ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered nano /data/whitelist.json"
+ssh mqttadmin@&lt;SERVER_IP&gt; "docker exec hivis-nodered nano /data/whitelist.json"
 # Add to the "devices" array:
 # { "mac": "AA:BB:CC:DD:EE:FF", "authorized": true, "group": "saskpoly", "notes": "Room X" }
 ```
@@ -194,7 +194,7 @@ python -m esptool --port COM7 erase_region 0x9000 0x5000
 
 **Step A — Check InfluxDB is receiving data:**
 ```bash
-ssh mqttadmin@172.16.1.156 \
+ssh mqttadmin@&lt;SERVER_IP&gt; \
   "docker exec hivis-influxdb influx query \
      --org hivis \
      --token <influx-admin-token> \
@@ -205,7 +205,7 @@ ssh mqttadmin@172.16.1.156 \
 
 **Step B — Check Node-RED is routing data:**
 
-1. Open http://172.16.1.156:1880
+1. Open http://&lt;SERVER_IP&gt;:1880
 2. Look at the `MQTT In` node — the green dot should be `connected`
 3. Click **Deploy** if any nodes show orange (pending changes)
 4. Look for the debug panel on the right — it shows warnings/errors from function nodes
@@ -222,7 +222,7 @@ Common Node-RED errors and fixes:
 
 ### FC-6 · Grafana datasource health
 
-1. Open http://172.16.1.156:3000
+1. Open http://&lt;SERVER_IP&gt;:3000
 2. Go to **Connections → Data sources → InfluxDB**
 3. Scroll to bottom → click **Save & Test**
 
@@ -294,14 +294,14 @@ cd /opt/hivis && docker compose up -d mosquitto
 
 **Check version endpoint:**
 ```bash
-curl http://172.16.1.156:8090/ota/version?mac=4cc382c32764
+curl http://&lt;SERVER_IP&gt;:8090/ota/version?mac=4cc382c32764
 ```
 
 **Expected output:** `2.0.2` (or current firmware version)
 
 **Check firmware file exists:**
 ```bash
-ssh mqttadmin@172.16.1.156 "ls -lh /opt/hivis/ota/firmware/"
+ssh mqttadmin@&lt;SERVER_IP&gt; "ls -lh /opt/hivis/ota/firmware/"
 ```
 
 **Expected:**
@@ -312,7 +312,7 @@ version.txt
 
 **Check OTA log from server:**
 ```bash
-ssh mqttadmin@172.16.1.156 "docker logs hivis-ota --tail=30"
+ssh mqttadmin@&lt;SERVER_IP&gt; "docker logs hivis-ota --tail=30"
 ```
 
 Look for `GET /ota/version` and `POST /provision` entries.
@@ -376,13 +376,13 @@ This confirms data flows all the way from sensor to Grafana.
 
 ```bash
 # Hop 1-2: Mosquitto receiving device data
-ssh mqttadmin@172.16.1.156 "tail -f /opt/hivis/mosquitto/log/mosquitto.log"
+ssh mqttadmin@&lt;SERVER_IP&gt; "tail -f /opt/hivis/mosquitto/log/mosquitto.log"
 # Should see publish lines every 3s
 
 # Hop 3: Node-RED processing (check debug panel in UI at :1880)
 
 # Hop 4: InfluxDB storing data
-ssh mqttadmin@172.16.1.156 \
+ssh mqttadmin@&lt;SERVER_IP&gt; \
   "docker exec hivis-influxdb influx query --org hivis --token <token> \
    'from(bucket:\"hivis\") |> range(start:-1m) |> count()'"
 
@@ -402,13 +402,13 @@ pio run
 
 # 3. Upload binary to server
 scp .pio/build/esp32doit-devkit-v1/firmware.bin \
-    mqttadmin@172.16.1.156:/opt/hivis/ota/firmware/latest.bin
+    mqttadmin@&lt;SERVER_IP&gt;:/opt/hivis/ota/firmware/latest.bin
 
 # 4. Update version file on server
-ssh mqttadmin@172.16.1.156 "echo '2.0.2' > /opt/hivis/ota/firmware/version.txt"
+ssh mqttadmin@&lt;SERVER_IP&gt; "echo '2.0.2' > /opt/hivis/ota/firmware/version.txt"
 
 # 5. Verify OTA endpoint
-curl http://172.16.1.156:8090/ota/version?mac=4cc382c32764
+curl http://&lt;SERVER_IP&gt;:8090/ota/version?mac=4cc382c32764
 # → 2.0.2
 
 # Device will pick up the new version on next boot (if > 24h since last OTA check)
@@ -425,12 +425,12 @@ curl http://172.16.1.156:8090/ota/version?mac=4cc382c32764
 #    MAC=4C:C3:82:C3:27:64  → use lowercase no-colon form: 4cc382c32764
 
 # 2. Add to whitelist inside the Node-RED container
-ssh mqttadmin@172.16.1.156 "docker exec hivis-nodered nano /data/whitelist.json"
+ssh mqttadmin@&lt;SERVER_IP&gt; "docker exec hivis-nodered nano /data/whitelist.json"
 # Add to the "devices" array:
 # { "mac": "4C:C3:82:C3:27:64", "authorized": true, "group": "saskpoly", "notes": "Room 102" }
 
 # 3. Add to OTA approved list
-ssh mqttadmin@172.16.1.156 "nano /opt/hivis/ota/devices.json"
+ssh mqttadmin@&lt;SERVER_IP&gt; "nano /opt/hivis/ota/devices.json"
 # Add to the "devices" object:
 # "4cc382c32764": { "ota_approved": true, "notes": "Room 102 — 4C:C3:82:C3:27:64" }
 

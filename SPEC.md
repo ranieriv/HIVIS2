@@ -96,8 +96,8 @@ All services run in **Docker** on the X200 (`mqttserver`), managed by a single `
 | InfluxDB UI | `mqttserver:8086` | LAN only |
 | Node-RED UI | `mqttserver:1880` | LAN only |
 | OTA server | `mqttserver:8090` | LAN + Tailscale |
-| Local IP | `172.16.1.156` | X200 static LAN IP |
-| Tailscale IP | `100.120.194.59` | Remote access |
+| Local IP | `&lt;SERVER_IP&gt;` | X200 static LAN IP |
+| Tailscale IP | `&lt;TAILSCALE_IP&gt;` | Remote access |
 
 ---
 

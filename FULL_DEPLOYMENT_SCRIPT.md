@@ -1,6 +1,6 @@
 # HIVIS Monitor — Website Deployment Guide
 
-Deploy the HIVIS live dashboard to **hvht.net** on the X200 server (172.16.1.156).
+Deploy the HIVIS live dashboard to **hvht.net** on the X200 server (&lt;SERVER_IP&gt;).
 All website files live in `server/` in this repo — copy them to the X200 and run the steps below.
 
 ---
@@ -31,7 +31,7 @@ From your dev machine (adjust SSH target as needed):
 
 ```bash
 # From repo root
-scp -r server/ user@172.16.1.156:/opt/hivis/server/
+scp -r server/ user@&lt;SERVER_IP&gt;:/opt/hivis/server/
 ```
 
 Or if the repo is already cloned on X200, just pull:
@@ -83,7 +83,7 @@ docker compose ps
 Test HTTP is reachable locally:
 
 ```bash
-curl -I http://172.16.1.156
+curl -I http://&lt;SERVER_IP&gt;
 # Expected: HTTP/1.1 200 OK
 ```
 
@@ -91,12 +91,12 @@ curl -I http://172.16.1.156
 
 ## Step 3 — Configure Router Port Forwarding
 
-**Manual step on Arris NVG448B (192.168.100.1):**
+**Manual step on Arris NVG448B (&lt;ROUTER_IP&gt;):**
 
 | External Port | Protocol | Internal IP  | Internal Port |
 |---------------|----------|--------------|---------------|
-| 80            | TCP      | 172.16.1.156 | 80            |
-| 443           | TCP      | 172.16.1.156 | 443           |
+| 80            | TCP      | &lt;SERVER_IP&gt; | 80            |
+| 443           | TCP      | &lt;SERVER_IP&gt; | 443           |
 
 ---
 
