@@ -10,3 +10,17 @@ server/ota/whitelist.json
 server/ota/devices.json
 docs/credentials.md
 server-backups/
+
+# KiCad autosave / cache / lock files
+hardware/_autosave-*
+hardware/#auto_saved_files#/
+hardware/fp-info-cache
+hardware/*.lck
+hardware/~*.kicad_sch.lck
+
+# KiCad backup ZIPs (git already tracks history)
+hardware/hivis2-backups/
+
+# Word documents and temp files
+*.docx
+~*.tmp

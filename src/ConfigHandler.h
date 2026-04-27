@@ -71,7 +71,7 @@ inline bool loadConfig(DeviceConfig &cfg) {
     cfg.displayTimeoutMs  = 10000;
     cfg.buzzerEnabled     = true;
     cfg.buzzerPin         = 25;
-    cfg.buttonPin         = 0;
+    cfg.buttonPin         = 4;
     cfg.longPressMs       = 2000;
     cfg.doublePressMs     = 400;
 

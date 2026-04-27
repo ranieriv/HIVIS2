@@ -199,7 +199,7 @@ Device checks OTA on every boot (if last check > 24h ago). Update applies automa
 | INMP441 SCK | GPIO 14 | Microphone bit clock |
 | INMP441 SD | GPIO 26 | Microphone data |
 | INMP441 LR | GPIO 13 | Left/Right select |
-| Button | GPIO 0 | Short/Long/Double/Factory reset |
+| Button | GPIO 4 | Short/Long/Double/Factory reset |
 | Buzzer | GPIO 25 | LEDC PWM, channel 0 |
 | Battery ADC | GPIO 36 | Voltage divider ×2.2 |
 

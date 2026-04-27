@@ -77,7 +77,7 @@ IAQ:75.2 Hum:45.3% Temp:22.5°C CO2:412 BVOC:0.52 dB:65.3 Acc:3 Bat:85%(3.85V) O
 ### QC-5 · OLED display
 
 The device OLED should show sensor readings continuously (no blank screen).
-Press the button (GPIO 0) briefly to cycle through the 3 pages:
+Press the button (GPIO 4) briefly to cycle through the 3 pages:
 - Page 0: IAQ + CO₂ + noise
 - Page 1: Temp + Humidity + BVOC
 - Page 2: WiFi SSID + battery + server connection status
@@ -153,7 +153,7 @@ On device serial monitor, immediately after boot, confirm:
 ```
 
 If WiFi fails:
-1. Long-press GPIO 0 (> 2 s) to launch reconfigure portal
+1. Long-press GPIO 4 (> 2 s) to launch reconfigure portal
 2. Connect phone/PC to `HIVIS-Setup-XXXX` hotspot
 3. Browse to 192.168.4.1 — enter correct WiFi SSID/password and MQTT server
 4. Save and wait for device reboot
@@ -297,7 +297,7 @@ cd /opt/hivis && docker compose up -d mosquitto
 curl http://172.16.1.156:8090/ota/version?mac=4cc382c32764
 ```
 
-**Expected output:** `2.0.1` (or current firmware version)
+**Expected output:** `2.0.2` (or current firmware version)
 
 **Check firmware file exists:**
 ```bash
@@ -452,7 +452,7 @@ ssh mqttadmin@172.16.1.156 "nano /opt/hivis/ota/devices.json"
 | `bsec_state.bin` error | LittleFS not uploaded | `pio run --target uploadfs` |
 | IAQ always shows 0, Acc=0 | BSEC2 warming up | Wait 30 minutes, accuracy will reach 1+ |
 | Screen blank / display off | `timeout_ms` non-zero | Set `timeout_ms: 0` in config.json, re-upload FS |
-| Factory reset triggered accidentally | GPIO 0 held > 5s during boot | Avoid pressing GPIO 0 at boot |
+| Factory reset triggered accidentally | GPIO 4 held > 5s during boot | Avoid pressing GPIO 4 at boot |
 | `fetch is not defined` in Node-RED | Node-RED doesn't expose global fetch | Use `global.get('http')` with functionGlobalContext |
 | Mosquitto exits with code 13 | `passwd` file owned by root (unreadable) | `docker run --rm --user root -v /opt/hivis/mosquitto/config:/mosquitto/config eclipse-mosquitto:latest chmod 644 /mosquitto/config/passwd` |
 | https://hvht.net shows 502 | InfluxDB container down | `docker compose up -d influxdb` |
