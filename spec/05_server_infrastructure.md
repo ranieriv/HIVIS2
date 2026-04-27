@@ -6,8 +6,8 @@ All server services run in Docker on the Lenovo ThinkPad X200 (`mqttserver`).
 A single `docker-compose.yml` defines the entire stack.
 
 **Host:** Ubuntu Server, 4GB RAM  
-**Static LAN IP:** `172.16.1.156`  
-**Tailscale IP:** `100.120.194.59`  
+**Static LAN IP:** `<SERVER_IP>`  
+**Tailscale IP:** `<TAILSCALE_IP>`  
 **External domain:** `mqtt.hvht.net` (Cloudflare DNS-only, no proxy)
 
 ---

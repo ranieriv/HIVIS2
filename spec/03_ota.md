@@ -46,7 +46,7 @@ public:
     bool checkAndUpdate();
 
 private:
-    String _serverUrl;  // e.g. "http://172.16.1.156:8090"
+    String _serverUrl;  // e.g. "http://<SERVER_IP>:8090"
     String _deviceId;
     String _mac;
     String _currentVersion;
