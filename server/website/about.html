@@ -432,6 +432,14 @@
     .footer-institution a { color: #a7f3d0; text-decoration: none; }
     .footer-institution a:hover { text-decoration: underline; }
 
+    /* ─── LIVE INDICATOR ─── */
+    .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.6); }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #a7f3d0; flex-shrink: 0; }
+    .live-dot.ok { background: #a7f3d0; animation: pulse-dot 2s infinite; }
+    .live-dot.error { background: #f87171; animation: blink 1s infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
     /* ─── ANIMATIONS ─── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -526,6 +534,10 @@
         <a href="/build.html">The Build</a>
         <a href="/results.html">Research Results</a>
       </nav>
+      <div class="live-indicator">
+        <div class="live-dot ok" id="live-dot"></div>
+        <span id="live-text">Connecting…</span>
+      </div>
     </div>
   </div>
 </header>
@@ -757,6 +769,28 @@
       hamburger.setAttribute('aria-expanded', 'false');
     }
   });
+
+  // Live device status
+  (async function liveStatus() {
+    const dot = document.getElementById('live-dot');
+    const txt = document.getElementById('live-text');
+    try {
+      const res = await fetch('/api/v2/query?org=hivis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/vnd.flux', Accept: 'application/csv' },
+        body: `from(bucket:"hivis") |> range(start:-15m) |> filter(fn:(r)=>r._measurement=="air_quality") |> keep(columns:["device_id"]) |> distinct(column:"device_id") |> count()`
+      });
+      if (!res.ok) throw new Error(res.status);
+      const csv = await res.text();
+      const match = csv.match(/\n[^,\n]+,[^,\n]+,[^,\n]+,[^,\n]+,(\d+)/);
+      const n = match ? parseInt(match[1], 10) : 0;
+      dot.className = n > 0 ? 'live-dot ok' : 'live-dot error';
+      txt.textContent = n > 0 ? `${n} device${n !== 1 ? 's' : ''} online` : 'No devices';
+    } catch {
+      dot.className = 'live-dot error';
+      txt.textContent = 'Connection error';
+    }
+  })();
 </script>
 
 </body>
