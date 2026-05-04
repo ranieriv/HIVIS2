@@ -197,7 +197,7 @@
     "type": "function",
     "z": "hivis-tab-2",
     "name": "Check whitelist",
-    "func": "const reg = msg.payload;\nconst mac = reg.mac.toLowerCase().replace(/:/g, \"\");\nconst fs = require(\"fs\");\n\nlet whitelist;\ntry {\n    whitelist = JSON.parse(fs.readFileSync(\"/data/whitelist.json\", \"utf8\"));\n} catch (e) {\n    node.error(\"Cannot read whitelist.json: \" + e.message, msg);\n    return null;\n}\n\nconst device = whitelist.devices.find(d =>\n    d.mac.toLowerCase().replace(/:/g, \"\") === mac\n);\n\nif (device && device.authorized) {\n    msg.approved = true;\n    msg.mac = mac;\n    msg.device_name = reg.device_name;\n} else {\n    msg.approved = false;\n    msg.mac = mac;\n}\nreturn msg;",
+    "func": "const reg = msg.payload;\nconst mac = reg.mac.toLowerCase().replace(/:/g, \"\");\nconst fs = global.get(\"fs\");\n\nlet whitelist;\ntry {\n    whitelist = JSON.parse(fs.readFileSync(\"/data/whitelist.json\", \"utf8\"));\n} catch (e) {\n    node.error(\"Cannot read whitelist.json: \" + e.message, msg);\n    return null;\n}\n\nconst device = whitelist.devices.find(d =>\n    d.mac.toLowerCase().replace(/:/g, \"\") === mac\n);\n\nif (device && device.authorized) {\n    msg.approved = true;\n    msg.mac = mac;\n    msg.device_name = reg.device_name;\n} else {\n    msg.approved = false;\n    msg.mac = mac;\n}\nreturn msg;",
     "outputs": 1,
     "timeout": "",
     "noerr": 0,
