@@ -2,7 +2,7 @@
   {
     "id": "hivis-tab-1",
     "type": "tab",
-    "label": "Flow 1: Sensor Data → InfluxDB",
+    "label": "Flow 1: Sensor Data \u2192 InfluxDB",
     "disabled": false,
     "info": "Subscribes to hivis/+/data, parses JSON, writes air_quality measurement to InfluxDB."
   },
@@ -20,7 +20,6 @@
     "disabled": false,
     "info": "Subscribes to hivis/+/data, extracts system fields, writes device_status measurement to InfluxDB."
   },
-
   {
     "id": "mqtt-broker-cfg",
     "type": "mqtt-broker",
@@ -81,7 +80,6 @@
       "token": "REPLACE_WITH_INFLUXDB_TOKEN"
     }
   },
-
   {
     "id": "f1-mqtt-in",
     "type": "mqtt in",
@@ -97,7 +95,11 @@
     "inputs": 0,
     "x": 120,
     "y": 100,
-    "wires": [["f1-json"]]
+    "wires": [
+      [
+        "f1-json"
+      ]
+    ]
   },
   {
     "id": "f1-json",
@@ -109,7 +111,11 @@
     "pretty": false,
     "x": 300,
     "y": 100,
-    "wires": [["f1-build-point"]]
+    "wires": [
+      [
+        "f1-build-point"
+      ]
+    ]
   },
   {
     "id": "f1-build-point",
@@ -125,7 +131,11 @@
     "libs": [],
     "x": 500,
     "y": 100,
-    "wires": [["f1-influxdb-out"]]
+    "wires": [
+      [
+        "f1-influxdb-out"
+      ]
+    ]
   },
   {
     "id": "f1-influxdb-out",
@@ -145,7 +155,6 @@
     "y": 100,
     "wires": []
   },
-
   {
     "id": "f2-mqtt-in",
     "type": "mqtt in",
@@ -161,7 +170,11 @@
     "inputs": 0,
     "x": 120,
     "y": 100,
-    "wires": [["f2-json"]]
+    "wires": [
+      [
+        "f2-json"
+      ]
+    ]
   },
   {
     "id": "f2-json",
@@ -173,7 +186,11 @@
     "pretty": false,
     "x": 300,
     "y": 100,
-    "wires": [["f2-whitelist"]]
+    "wires": [
+      [
+        "f2-whitelist"
+      ]
+    ]
   },
   {
     "id": "f2-whitelist",
@@ -189,7 +206,11 @@
     "libs": [],
     "x": 480,
     "y": 100,
-    "wires": [["f2-switch"]]
+    "wires": [
+      [
+        "f2-switch"
+      ]
+    ]
   },
   {
     "id": "f2-switch",
@@ -199,23 +220,34 @@
     "property": "approved",
     "propertyType": "msg",
     "rules": [
-      { "t": "true" },
-      { "t": "false" }
+      {
+        "t": "true"
+      },
+      {
+        "t": "false"
+      }
     ],
     "checkall": "false",
     "repair": false,
     "outputs": 2,
     "x": 660,
     "y": 100,
-    "wires": [["f2-gen-creds"], ["f2-rejected-fn"]]
+    "wires": [
+      [
+        "f2-gen-creds"
+      ],
+      [
+        "f2-rejected-fn"
+      ]
+    ]
   },
   {
     "id": "f2-gen-creds",
     "type": "function",
     "z": "hivis-tab-2",
     "name": "Generate credentials",
-    "func": "// Generate a secure random password\nconst chars = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\";\nlet pass = \"\";\nfor (let i = 0; i < 20; i++) {\n    pass += chars[Math.floor(Math.random() * chars.length)];\n}\n\nconst user = \"device_\" + msg.mac;\nconst deviceId = \"hivis-\" + msg.mac;\n\nmsg.topic = \"hivis/provision/\" + msg.mac;\nmsg.payload = JSON.stringify({\n    status: \"approved\",\n    mqtt_user: user,\n    mqtt_pass: pass,\n    device_id: deviceId\n});\nmsg.retain = true;\n\n// Auto-provision Mosquitto user via OTA server\ntry {\n    const resp = await fetch(\"http://ota-server:8090/provision\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({user: user, password: pass})\n    });\n    if (resp.ok) {\n        node.warn(\"Auto-provisioned: \" + user);\n    } else {\n        node.warn(\"Provision API failed (\" + resp.status + \") for \" + user + \" — add manually\");\n    }\n} catch(e) {\n    node.warn(\"Provision API error: \" + e.message + \" — \" + user + \" add manually\");\n}\n\nreturn msg;",
-    "outputs": 1,
+    "func": "const chars = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\";\nlet pass = \"\";\nfor (let i = 0; i < 20; i++) {\n    pass += chars[Math.floor(Math.random() * chars.length)];\n}\n\nconst user = \"device_\" + msg.mac;\nconst deviceId = \"hivis-\" + msg.mac;\n\n// Output 1: MQTT retain message to provision the device\nconst mqttMsg = {\n    topic: \"hivis/provision/\" + msg.mac,\n    payload: JSON.stringify({\n        status: \"approved\",\n        mqtt_user: user,\n        mqtt_pass: pass,\n        device_id: deviceId\n    }),\n    retain: true\n};\n\n// Output 2: HTTP POST to OTA server to update Mosquitto passwd + ACL\nconst httpMsg = {\n    payload: JSON.stringify({ user: user, password: pass }),\n    headers: {\n        \"Content-Type\": \"application/json\",\n        \"X-Provision-Token\": \"_QYf_IIpIc3WAQMmWskCj0Zrfeeasjmx1irFq7aoi0M\"\n    }\n};\n\nreturn [mqttMsg, httpMsg];",
+    "outputs": 2,
     "timeout": "",
     "noerr": 0,
     "initialize": "",
@@ -223,7 +255,14 @@
     "libs": [],
     "x": 860,
     "y": 60,
-    "wires": [["f2-mqtt-out-approved"]]
+    "wires": [
+      [
+        "f2-mqtt-out-approved"
+      ],
+      [
+        "f2-ota-provision"
+      ]
+    ]
   },
   {
     "id": "f2-rejected-fn",
@@ -239,7 +278,11 @@
     "libs": [],
     "x": 870,
     "y": 140,
-    "wires": [["f2-mqtt-out-rejected"]]
+    "wires": [
+      [
+        "f2-mqtt-out-rejected"
+      ]
+    ]
   },
   {
     "id": "f2-mqtt-out-approved",
@@ -277,7 +320,6 @@
     "y": 140,
     "wires": []
   },
-
   {
     "id": "f3-mqtt-in",
     "type": "mqtt in",
@@ -293,7 +335,11 @@
     "inputs": 0,
     "x": 120,
     "y": 100,
-    "wires": [["f3-json"]]
+    "wires": [
+      [
+        "f3-json"
+      ]
+    ]
   },
   {
     "id": "f3-json",
@@ -305,7 +351,11 @@
     "pretty": false,
     "x": 300,
     "y": 100,
-    "wires": [["f3-extract-status"]]
+    "wires": [
+      [
+        "f3-extract-status"
+      ]
+    ]
   },
   {
     "id": "f3-extract-status",
@@ -321,7 +371,11 @@
     "libs": [],
     "x": 500,
     "y": 100,
-    "wires": [["f3-influxdb-out"]]
+    "wires": [
+      [
+        "f3-influxdb-out"
+      ]
+    ]
   },
   {
     "id": "f3-influxdb-out",
@@ -339,6 +393,44 @@
     "bucket": "hivis",
     "x": 730,
     "y": 100,
+    "wires": []
+  },
+  {
+    "id": "f2-ota-provision",
+    "type": "http request",
+    "z": "hivis-tab-2",
+    "name": "POST /provision",
+    "method": "POST",
+    "ret": "txt",
+    "paytoqs": "ignore",
+    "url": "http://ota-server:8090/provision",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "x": 1120,
+    "y": 20,
+    "wires": [
+      [
+        "f2-ota-log"
+      ]
+    ]
+  },
+  {
+    "id": "f2-ota-log",
+    "type": "debug",
+    "z": "hivis-tab-2",
+    "name": "OTA provision result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1340,
+    "y": 20,
     "wires": []
   }
 ]
