@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Research Results — HIVIS Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --black: #0a0a0a;
+        --dark: #111111;
+        --surface: #141414;
+        --surface2: #1a1a1a;
+        --border: rgba(255, 255, 255, 0.08);
+        --yellow: #fbbf24;
+        --yellow-dim: rgba(251, 191, 36, 0.12);
+        --green: #a7f3d0;
+        --green-dim: rgba(167, 243, 208, 0.1);
+        --text: #e8e8e8;
+        --muted: #777;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        font-family: "Lora", Georgia, serif;
+        background: var(--black);
+        color: var(--text);
+        line-height: 1.75;
+        overflow-x: hidden;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1.2rem 3rem;
+        background: rgba(10, 10, 10, 0.9);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-logo {
+        font-family: "Syne", sans-serif;
+        font-weight: 800; font-size: 1.1rem; letter-spacing: 2px;
+        background: linear-gradient(90deg, var(--yellow), var(--green));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text; text-decoration: none;
+      }
+      .nav-links { display: flex; gap: 2rem; list-style: none; }
+      .nav-links a {
+        font-family: "Syne", sans-serif;
+        font-size: 0.85rem; font-weight: 600; letter-spacing: 1px;
+        color: var(--muted); text-decoration: none; text-transform: uppercase;
+        transition: color 0.3s;
+      }
+      .nav-links a:hover, .nav-links a.active { color: var(--yellow); }
+
+      /* ── HAMBURGER ── */
+      .hamburger {
+        display: none; flex-direction: column; justify-content: center;
+        gap: 5px; background: none; border: none; cursor: pointer;
+        padding: 4px; z-index: 200;
+      }
+      .hamburger span {
+        display: block; width: 24px; height: 2px;
+        background: var(--yellow); border-radius: 2px;
+        transition: transform 0.3s, opacity 0.3s;
+      }
+      nav.open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+      nav.open .hamburger span:nth-child(2) { opacity: 0; }
+      nav.open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+      @media (max-width: 768px) {
+        .hamburger { display: flex; }
+        .nav-links {
+          display: none; position: absolute; top: 100%; left: 0; right: 0;
+          background: rgba(10, 10, 10, 0.97); backdrop-filter: blur(12px);
+          flex-direction: column; align-items: flex-start;
+          padding: 1.5rem 2rem; gap: 1.25rem;
+          border-bottom: 1px solid var(--border); list-style: none;
+        }
+        .nav-links a { font-size: 1rem; letter-spacing: 1px; }
+        nav.open .nav-links { display: flex; }
+        nav { padding: 1rem 1.5rem; }
+      }
+
+      /* ── HERO ── */
+      .hero {
+        padding: 140px 3rem 80px;
+        max-width: 1100px; margin: 0 auto;
+        animation: fadeUp 0.9s ease both;
+      }
+      .hero-eyebrow {
+        font-family: "Syne", sans-serif;
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 3px;
+        text-transform: uppercase; color: var(--yellow); margin-bottom: 1.5rem;
+      }
+      .hero h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(3rem, 6vw, 6rem); font-weight: 800; line-height: 0.95;
+        color: #fff; margin-bottom: 1.5rem;
+      }
+      .hero h1 em { color: var(--yellow); font-style: normal; }
+      .hero-desc {
+        font-size: 1.15rem; color: var(--muted); max-width: 640px;
+        line-height: 1.7; font-style: italic; margin-bottom: 0.75rem;
+      }
+      .hero-meta {
+        font-family: "Syne", sans-serif; font-size: 0.75rem; font-weight: 600;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+        opacity: 0.7;
+      }
+
+      /* ── SECTIONS ── */
+      section {
+        max-width: 1100px; margin: 0 auto; padding: 5rem 3rem;
+      }
+      section + section {
+        border-top: 1px solid var(--border);
+      }
+      .section-label {
+        font-family: "Syne", sans-serif;
+        font-size: 0.7rem; font-weight: 700; letter-spacing: 4px;
+        text-transform: uppercase; color: var(--yellow);
+        margin-bottom: 2.5rem;
+        display: flex; align-items: center; gap: 1rem;
+      }
+      .section-label::after {
+        content: ""; flex: 1; max-width: 80px;
+        height: 1px; background: var(--yellow); opacity: 0.4;
+      }
+      h2 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800;
+        color: #fff; margin-bottom: 0.5rem;
+      }
+      h3 {
+        font-family: "Syne", sans-serif;
+        font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;
+      }
+      .section-subtitle {
+        color: var(--muted); font-style: italic;
+        font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;
+      }
+
+      /* ── CARDS ── */
+      .card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 2px; padding: 1.75rem;
+        transition: border-color 0.3s, transform 0.3s;
+      }
+      .card:hover { border-color: rgba(251, 191, 36, 0.3); transform: translateY(-3px); }
+      .card-title {
+        font-family: "Syne", sans-serif; font-size: 0.8rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase;
+        color: var(--yellow); margin-bottom: 0.75rem;
+      }
+      .card p { font-size: 0.95rem; color: var(--muted); line-height: 1.7; }
+
+      /* ── RQ CARDS ── */
+      .rq-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+        margin-top: 1.5rem;
+      }
+      .rq-card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 2px; padding: 2rem;
+        transition: transform 0.3s;
+      }
+      .rq-card:hover { transform: translateY(-3px); }
+      .rq-card.amber { border-left: 3px solid var(--yellow); }
+      .rq-card.teal  { border-left: 3px solid var(--green); }
+      .rq-tag {
+        font-family: "Syne", sans-serif; font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.5rem;
+      }
+      .rq-card.amber .rq-tag { color: var(--yellow); }
+      .rq-card.teal  .rq-tag { color: var(--green); }
+      .rq-card h3 { font-size: 1rem; color: #fff; margin-bottom: 0.75rem; }
+      .rq-card p  { font-size: 0.95rem; color: var(--muted); line-height: 1.7; }
+
+      @media (max-width: 768px) {
+        .rq-grid { grid-template-columns: 1fr; }
+      }
+
+      /* ── STAT TILES ── */
+      .stat-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .stat-tile {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 2px; padding: 1.5rem 1.25rem; text-align: center;
+        transition: border-color 0.3s;
+      }
+      .stat-tile:hover { border-color: rgba(167, 243, 208, 0.3); }
+      .stat-value {
+        font-family: "Syne", sans-serif; font-size: 1.9rem; font-weight: 800;
+        color: var(--green); line-height: 1; margin-bottom: 0.5rem;
+        display: block;
+      }
+      .stat-unit {
+        font-family: "Syne", sans-serif; font-size: 0.8rem; font-weight: 600;
+        color: var(--green); opacity: 0.8;
+      }
+      .stat-label {
+        font-size: 0.7rem; color: var(--muted); text-transform: uppercase;
+        letter-spacing: 1.5px; font-family: "Syne", sans-serif; font-weight: 600;
+      }
+
+      @media (max-width: 900px) {
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 480px) {
+        .stat-grid { grid-template-columns: 1fr; }
+      }
+
+      /* ── BADGE ── */
+      .badge {
+        display: inline-block; font-family: "Syne", sans-serif;
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px;
+        text-transform: uppercase; padding: 0.4rem 1rem; border-radius: 2px;
+        margin-bottom: 2rem;
+      }
+      .badge-green {
+        background: rgba(167, 243, 208, 0.15);
+        border: 1px solid rgba(167, 243, 208, 0.4);
+        color: var(--green);
+      }
+
+      /* ── THREE-COL GRID ── */
+      .three-col {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+      @media (max-width: 900px) {
+        .three-col { grid-template-columns: 1fr; }
+      }
+
+      /* ── NOTE BOX ── */
+      .note-amber {
+        border-left: 3px solid rgba(251, 191, 36, 0.5);
+        padding: 1rem 1.25rem; margin-top: 1.5rem;
+        background: rgba(251, 191, 36, 0.05); border-radius: 0 2px 2px 0;
+        font-size: 0.9rem; font-style: italic; color: var(--muted);
+      }
+      .note-amber strong { color: var(--yellow); font-style: normal; }
+
+      /* ── TWO-COL GRID ── */
+      .two-col {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+        margin-top: 1.5rem;
+      }
+      @media (max-width: 900px) {
+        .two-col { grid-template-columns: 1fr; gap: 2rem; }
+      }
+
+      /* ── TABLE ── */
+      .table-wrap { overflow-x: auto; margin-top: 1rem; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+      thead th {
+        background: rgba(167, 243, 208, 0.1); color: var(--green);
+        font-family: "Syne", sans-serif; font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px;
+        padding: 0.75rem 1rem; text-align: left; white-space: nowrap;
+      }
+      tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.025); }
+      tbody td {
+        padding: 0.65rem 1rem; border-bottom: 1px solid var(--border);
+        color: var(--text); vertical-align: top;
+      }
+      tbody td:first-child { color: var(--muted); font-family: "Syne", sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; }
+
+      /* ── THRESHOLD PILLS ── */
+      .pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+      .pill {
+        display: inline-block;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        color: var(--yellow); font-family: "Syne", sans-serif;
+        font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
+        padding: 0.3rem 0.7rem; border-radius: 2px;
+      }
+
+      /* ── MINI STAT CARDS (Mobile-B) ── */
+      .mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
+      .mini-stat {
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 2px; padding: 1rem; text-align: center;
+      }
+      .mini-stat .val {
+        font-family: "Syne", sans-serif; font-size: 1.2rem; font-weight: 800;
+        color: var(--green); display: block; margin-bottom: 0.25rem;
+      }
+      .mini-stat .lbl {
+        font-family: "Syne", sans-serif; font-size: 0.65rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+      }
+      @media (max-width: 480px) {
+        .mini-stats { grid-template-columns: 1fr; }
+      }
+
+      /* ── CITATION ── */
+      .citation {
+        font-size: 0.8rem; font-style: italic; color: var(--muted);
+        margin-top: 2rem; padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        line-height: 1.6;
+      }
+
+      /* ── BAR CHART ── */
+      .bar-chart { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+      .bar-row {
+        display: grid; grid-template-columns: 70px 1fr 90px;
+        gap: 0.75rem; align-items: center;
+      }
+      .bar-day {
+        font-family: "Syne", sans-serif; font-size: 0.75rem; font-weight: 700;
+        color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+        text-align: right;
+      }
+      .bar-track {
+        background: rgba(255, 255, 255, 0.04); border-radius: 2px;
+        height: 36px; overflow: hidden; position: relative;
+      }
+      .bar-fill {
+        height: 100%; border-radius: 2px;
+        display: flex; align-items: center; padding-left: 0.5rem;
+        font-family: "Syne", sans-serif; font-size: 0.7rem; font-weight: 700;
+        color: rgba(0,0,0,0.7); white-space: nowrap;
+        transition: width 1s ease;
+      }
+      .bar-amber { background: rgba(251, 191, 36, 0.6); }
+      .bar-teal  { background: rgba(167, 243, 208, 0.55); }
+      .bar-val {
+        font-family: "Syne", sans-serif; font-size: 0.85rem; font-weight: 700;
+        color: var(--text); text-align: left;
+      }
+      .bar-tag {
+        font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
+        text-transform: uppercase; color: var(--yellow); margin-left: 0.35rem;
+      }
+      .bar-note {
+        font-size: 0.8rem; font-style: italic; color: var(--muted);
+        margin-top: 1rem; padding-left: 70px;
+      }
+
+      /* ── TIMELINE ── */
+      .timeline {
+        position: relative; display: flex; align-items: flex-start;
+        gap: 0; margin-top: 1.5rem; padding: 1.5rem 0 0;
+        overflow-x: auto;
+      }
+      .timeline::before {
+        content: ""; position: absolute; top: 0; left: 0; right: 0;
+        height: 2px; background: var(--border);
+      }
+      .timeline-marker {
+        flex: 1; min-width: 120px; padding: 0.75rem 0.5rem 0;
+        position: relative; text-align: center;
+      }
+      .timeline-marker::before {
+        content: ""; position: absolute; top: -1.5rem; left: 50%;
+        transform: translateX(-50%);
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--green); border: 2px solid var(--black);
+      }
+      .timeline-time {
+        font-family: "Syne", sans-serif; font-size: 0.8rem; font-weight: 700;
+        color: var(--green); display: block; margin-bottom: 0.25rem;
+      }
+      .timeline-label {
+        font-size: 0.78rem; color: var(--muted); line-height: 1.4;
+      }
+
+      /* ── COST CARDS ── */
+      .cost-card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 2px; padding: 1.75rem;
+        transition: transform 0.3s, border-color 0.3s;
+      }
+      .cost-card:hover { transform: translateY(-3px); }
+      .cost-card.teal-top  { border-top: 3px solid var(--green); }
+      .cost-card.grey-top  { border-top: 3px solid rgba(255,255,255,0.2); }
+      .cost-card.amber-top { border-top: 3px solid var(--yellow); }
+      .cost-card h3 { font-size: 0.95rem; color: #fff; margin-bottom: 1rem; }
+      .cost-card .price {
+        font-family: "Syne", sans-serif; font-size: 1.5rem; font-weight: 800;
+        color: var(--green); display: block; margin-bottom: 0.25rem;
+      }
+      .cost-card .price-secondary {
+        font-family: "Syne", sans-serif; font-size: 1rem; font-weight: 600;
+        color: rgba(167,243,208,0.6); display: block; margin-bottom: 1rem;
+      }
+      .cost-card ul { list-style: none; padding: 0; }
+      .cost-card ul li {
+        font-size: 0.85rem; color: var(--muted); padding: 0.3rem 0;
+        border-bottom: 1px solid var(--border); line-height: 1.5;
+      }
+      .cost-card ul li:last-child { border-bottom: none; }
+
+      /* ── LIMITATIONS CARD ── */
+      .limit-card {
+        background: rgba(251, 191, 36, 0.04);
+        border: 1px solid rgba(251, 191, 36, 0.15);
+        border-radius: 2px; padding: 2rem;
+      }
+      .limit-card ul { list-style: none; padding: 0; }
+      .limit-card ul li {
+        font-size: 0.95rem; color: var(--muted); padding: 0.6rem 0;
+        border-bottom: 1px solid var(--border); line-height: 1.65;
+        padding-left: 1.25rem; position: relative;
+      }
+      .limit-card ul li:last-child { border-bottom: none; }
+      .limit-card ul li::before {
+        content: "—"; position: absolute; left: 0;
+        color: rgba(251, 191, 36, 0.5); font-weight: 700;
+      }
+
+      /* ── DOWNLOAD SECTION ── */
+      .download-section { text-align: center; }
+      .download-card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 2px; padding: 3rem 2rem;
+        max-width: 600px; margin: 1.5rem auto 0;
+      }
+      .download-card p {
+        font-size: 0.95rem; color: var(--muted); margin-bottom: 2rem;
+        line-height: 1.7;
+      }
+      .btn-download {
+        display: inline-flex; align-items: center; gap: 0.75rem;
+        background: var(--green); color: #000;
+        font-family: "Syne", sans-serif; font-weight: 800;
+        font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase;
+        padding: 1rem 2.5rem; border-radius: 2px; text-decoration: none;
+        transition: background 0.25s, transform 0.2s;
+      }
+      .btn-download:hover { background: #fff; transform: translateY(-2px); }
+      .btn-download svg { flex-shrink: 0; }
+
+      /* ── FOOTER ── */
+      footer {
+        padding: 2.5rem 3rem; text-align: center;
+        border-top: 1px solid var(--border);
+        font-family: "Syne", sans-serif; font-size: 0.75rem;
+        color: var(--muted); letter-spacing: 1px;
+      }
+      footer a { color: var(--yellow); text-decoration: none; }
+      footer a:hover { color: var(--green); }
+      .footer-sdg { margin-top: 0.5rem; font-size: 0.7rem; opacity: 0.5; letter-spacing: 2px; }
+
+      /* ── ANIMATIONS ── */
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .reveal {
+        opacity: 0; transform: translateY(24px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+      }
+      .reveal.visible { opacity: 1; transform: translateY(0); }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 900px) {
+        section { padding: 3.5rem 1.5rem; }
+        .hero { padding: 120px 1.5rem 60px; }
+      }
+      @media (max-width: 480px) {
+        .bar-row { grid-template-columns: 55px 1fr 75px; }
+        .bar-note { padding-left: 55px; }
+        .mini-stats { grid-template-columns: 1fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <nav>
+      <a href="/" class="nav-logo">HIVIS MONITOR</a>
+      <button class="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/build.html">The Build</a></li>
+        <li><a href="/results.html" class="active">Research Results</a></li>
+      </ul>
+    </nav>
+
+    <!-- ── HERO ── -->
+    <div class="hero">
+      <div class="hero-eyebrow">Applied Research · Saskatchewan Polytechnic · 2026</div>
+      <h1>Research <em>Results</em></h1>
+      <p class="hero-desc">HIVIS Monitor — Applied Research Student Showcase 2026</p>
+      <p class="hero-meta">Rani dos Santos Vilela · May 4, 2026</p>
+    </div>
+
+    <!-- ── RESEARCH QUESTIONS ── -->
+    <section class="reveal">
+      <div class="section-label">Research Questions</div>
+      <div class="rq-grid">
+        <div class="rq-card amber">
+          <div class="rq-tag">RQ1 — Feasibility</div>
+          <h3>Can the system be built?</h3>
+          <p>Is it feasible to develop a low-cost, self-hosted wearable IoT sensor system — battery powered and continuously connected to a real-time server — capable of monitoring indoor and outdoor air quality, temperature, and noise levels in trades workplace environments?</p>
+        </div>
+        <div class="rq-card teal">
+          <div class="rq-tag">RQ2 — Reliability</div>
+          <h3>Does it perform in the real world?</h3>
+          <p>If feasible, does such a system perform reliably when deployed in real-world conditions?</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FLEET OVERVIEW ── -->
+    <section class="reveal">
+      <div class="section-label">Fleet Overview — Mar 25 – May 3, 2026</div>
+      <div class="stat-grid">
+        <div class="stat-tile">
+          <span class="stat-value">812,717</span>
+          <div class="stat-label">Valid Readings</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">742 <span class="stat-unit">hrs</span></span>
+          <div class="stat-label">Monitoring Hours</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">3</span>
+          <div class="stat-label">Devices Deployed</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">40 <span class="stat-unit">days</span></span>
+          <div class="stat-label">Longest Continuous Run</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">843.6 <span class="stat-unit">ppm</span></span>
+          <div class="stat-label">Fleet Mean CO₂</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">110.4</span>
+          <div class="stat-label">Fleet Mean IAQ</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">17 <span class="stat-unit">of 33</span></span>
+          <div class="stat-label">Days Avg CO₂ Above 800 ppm</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value" style="font-size:1.1rem; padding-top:0.3rem">Mar 25<br>– May 3</span>
+          <div class="stat-label">Study Period</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RQ1 ANSWER ── -->
+    <section class="reveal">
+      <div class="section-label">RQ1 — Feasibility</div>
+      <h2>Can the System Be Built?</h2>
+      <div class="badge badge-green" style="margin-top:1rem">✓ Yes — Feasibility Confirmed</div>
+      <div class="three-col">
+        <div class="card">
+          <div class="card-title">System Built &amp; Deployed</div>
+          <p>3 physical devices designed, assembled, and deployed. Custom 2-layer PCB fabricated via JLCPCB. Firmware deployed via OTA updates. WiFiManager provisioning required no firmware changes per device.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Data Transmission</div>
+          <p>812,717 valid readings captured. Fixed device: 62.6% delivery rate over 40 days. Mobile devices operated intermittently by design — low overall delivery rate reflects planned deployment, not system failure.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Battery Performance</div>
+          <p>Mobile devices sustained 4–5 hours per charge at workplace drain rates (~21.5%/hr). Firmware v2.0.2 introduced screen timeout: −1.64%/hr drain reduction confirmed on fixed device.</p>
+        </div>
+      </div>
+      <div class="note-amber">
+        <strong>Note:</strong> One device excluded from all analysis — confirmed BSEC2 calibration failure producing frozen readings. Disclosed as a system limitation.
+      </div>
+    </section>
+
+    <!-- ── WORKPLACE AIR QUALITY ── -->
+    <section class="reveal">
+      <div class="section-label">Workplace Air Quality — Mobile Devices</div>
+      <h2>Trades Workplace Findings</h2>
+      <p class="section-subtitle">Mobile devices carried during telecom service shifts in Regina, SK · Mon–Thu 16:30–20:30 / Sat 08:00–16:00 CST</p>
+      <div class="two-col">
+        <!-- Mobile-A -->
+        <div>
+          <h3>Mobile-A <span style="color:var(--muted); font-size:0.8rem; font-weight:400">12,395 readings · Apr 11–25</span></h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Mean</th>
+                  <th>Min</th>
+                  <th>Max</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>IAQ (0–500)</td><td>114.6</td><td>0.1</td><td>500</td></tr>
+                <tr><td>CO₂ (ppm)</td><td>1,083.7</td><td>400</td><td>4,080</td></tr>
+                <tr><td>Temperature (°C)*</td><td>28.0</td><td>20.0</td><td>36.3</td></tr>
+                <tr><td>Humidity (%)</td><td>26.2</td><td>15.3</td><td>51.6</td></tr>
+                <tr><td>Sound (dB SPL)</td><td>82.2</td><td>50.0</td><td>111.8</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:0.72rem; color:var(--muted); margin-top:0.5rem">* Enclosed device — ~+1.3°C upward bias from ESP32 heat.</p>
+          <div class="pills">
+            <span class="pill">CO₂ &gt; 800 ppm: 77.5%</span>
+            <span class="pill">CO₂ &gt; 1,000 ppm: 50.0%</span>
+            <span class="pill">CO₂ &gt; 1,100 ppm: 34.0%</span>
+            <span class="pill">IAQ &gt; 100: 57.8%</span>
+          </div>
+        </div>
+        <!-- Mobile-B -->
+        <div>
+          <h3>Mobile-B <span style="color:var(--muted); font-size:0.8rem; font-weight:400">899 readings · Apr 15 (single session)</span></h3>
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <span class="val">1,219.3</span>
+              <span class="lbl">Mean CO₂ (ppm)</span>
+            </div>
+            <div class="mini-stat">
+              <span class="val">1,085–1,372</span>
+              <span class="lbl">CO₂ Range (ppm)</span>
+            </div>
+            <div class="mini-stat">
+              <span class="val">1,372 ppm</span>
+              <span class="lbl">Peak CO₂ @ 17:15 CST</span>
+            </div>
+            <div class="mini-stat">
+              <span class="val">133.4</span>
+              <span class="lbl">Mean IAQ</span>
+            </div>
+          </div>
+          <div class="pills" style="margin-top:0.75rem">
+            <span class="pill">CO₂ &gt; 1,000 ppm: 100% of readings</span>
+          </div>
+          <div class="note-amber" style="margin-top:1rem; font-size:0.85rem">
+            Limited dataset — one session only. Results are notable but not generalisable.
+          </div>
+        </div>
+      </div>
+      <p class="citation">
+        1,000 ppm CO₂ has been linked to a moderate decline in decision-making performance.<br>
+        Satish et al. (2012). <em>Is CO₂ an indoor pollutant? Direct effects of low-to-moderate CO₂ concentrations on human decision-making performance.</em> Environmental Health Perspectives, 120(12), 1671–1677.
+      </p>
+    </section>
+
+    <!-- ── DAY OF WEEK ── -->
+    <section class="reveal">
+      <div class="section-label">CO₂ by Day — Mobile-A</div>
+      <h2>CO₂ by Day of Week</h2>
+      <p class="section-subtitle">Average CO₂ concentration per working day</p>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-day">Mon</div>
+          <div class="bar-track">
+            <div class="bar-fill bar-amber" style="width: 92.2%"></div>
+          </div>
+          <div class="bar-val">1,199 ppm <span class="bar-tag">worst</span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-day">Wed</div>
+          <div class="bar-track">
+            <div class="bar-fill bar-teal" style="width: 66.5%"></div>
+          </div>
+          <div class="bar-val">864 ppm</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-day">Sat</div>
+          <div class="bar-track">
+            <div class="bar-fill bar-amber" style="width: 79.5%"></div>
+          </div>
+          <div class="bar-val">1,033 ppm</div>
+        </div>
+      </div>
+      <p class="bar-note">Friday excluded — devices left at home, not representative of workplace conditions.</p>
+    </section>
+
+    <!-- ── OUTDOOR DETECTION ── -->
+    <section class="reveal">
+      <div class="section-label">Outdoor Detection</div>
+      <h2>Automatic Outdoor Detection</h2>
+      <p class="section-subtitle">The system identified outdoor conditions with no configuration required.</p>
+      <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 500px;">
+        <div class="stat-tile">
+          <span class="stat-value">127</span>
+          <div class="stat-label">Readings below 500 ppm during workplace hours</div>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">440 <span class="stat-unit">ppm</span></span>
+          <div class="stat-label">Mean outdoor CO₂ (near-atmospheric)</div>
+        </div>
+      </div>
+      <p style="margin-top:1.5rem; font-size:0.9rem; color:var(--muted)">Outdoor readings clustered at shift transitions:</p>
+      <div class="timeline">
+        <div class="timeline-marker">
+          <span class="timeline-time">08:30</span>
+          <span class="timeline-label">Saturday<br>shift start</span>
+        </div>
+        <div class="timeline-marker">
+          <span class="timeline-time">15:00</span>
+          <span class="timeline-label">Saturday<br>shift end</span>
+        </div>
+        <div class="timeline-marker">
+          <span class="timeline-time">16:30–17:00</span>
+          <span class="timeline-label">Weekday<br>shift arrival</span>
+        </div>
+      </div>
+      <div class="note-amber" style="margin-top:1.5rem">
+        No GPS, no manual tagging — the sensor responded to real environmental changes.
+      </div>
+    </section>
+
+    <!-- ── EDUCATIONAL DEPLOYMENT ── -->
+    <section class="reveal">
+      <div class="section-label">Educational Deployment — Fixed Device</div>
+      <h2>System Validation</h2>
+      <p class="section-subtitle">Fixed device · Saskatchewan Polytechnic · 40 days continuous · 693,316 readings</p>
+      <div class="table-wrap">
+        <table style="max-width: 640px;">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Mean</th>
+              <th>Min</th>
+              <th>Max</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>IAQ (0–500)</td><td>114.1</td><td>0.3</td><td>500</td></tr>
+            <tr><td>CO₂ (ppm)</td><td>835.8</td><td>400</td><td>4,228</td></tr>
+            <tr><td>Temperature (°C)</td><td>25.5</td><td>—</td><td>30.5</td></tr>
+            <tr><td>Humidity (%)</td><td>17.4</td><td>10.4</td><td>76.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:0.8rem; color:var(--muted); margin-top:0.75rem">This device did not include a microphone. Noise data is from mobile devices only.</p>
+      <div class="note-amber">
+        <strong>Peak CO₂: 4,228 ppm on April 5</strong> — IAQ reached sensor ceiling of 500.
+      </div>
+    </section>
+
+    <!-- ── COST COMPARISON ── -->
+    <section class="reveal">
+      <div class="section-label">Cost Context</div>
+      <h2>Why Cost Matters</h2>
+      <div class="three-col">
+        <div class="cost-card teal-top">
+          <h3>HIVIS Monitor</h3>
+          <span class="price">$73 CAD</span>
+          <span class="price-secondary">18650 battery build</span>
+          <ul>
+            <li>$90 CAD — LiPo 2100 mAh build</li>
+            <li>5-device fleet: ~$365–$450</li>
+            <li>No calibration required</li>
+            <li>No subscription</li>
+            <li>Self-hosted, open firmware</li>
+          </ul>
+        </div>
+        <div class="cost-card grey-top">
+          <h3>Consumer NDIR CO₂ Monitor</h3>
+          <span class="price">$150–$300</span>
+          <span class="price-secondary">per unit</span>
+          <ul>
+            <li>Fixed location only</li>
+            <li>Cloud subscription often required</li>
+            <li>No noise monitoring</li>
+            <li>No fleet management</li>
+          </ul>
+        </div>
+        <div class="cost-card amber-top">
+          <h3>Certified 4-Gas Industrial Monitor</h3>
+          <span class="price">$400–$600+</span>
+          <span class="price-secondary">per unit</span>
+          <ul>
+            <li>Annual calibration required</li>
+            <li>5-device fleet: $2,000–$3,000+</li>
+            <li>Required for safety-critical detection</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note-amber">
+        The HIVIS Monitor is not a replacement for certified instruments. It is an auxiliary — giving workers and supervisors visibility into conditions that were previously invisible, at a cost that makes fleet deployment realistic.
+      </div>
+    </section>
+
+    <!-- ── LIMITATIONS ── -->
+    <section class="reveal">
+      <div class="section-label">Limitations</div>
+      <h2>Limitations</h2>
+      <div class="limit-card" style="margin-top:1.5rem">
+        <ul>
+          <li>eCO₂ is estimated via MOX sensor (BME688), not measured by NDIR. Values are indicators, not certified measurements.</li>
+          <li>BME688 cannot detect specific gases such as H₂S or CO. Safety-critical detection requires dedicated electrochemical sensors.</li>
+          <li>One device excluded due to BSEC2 calibration failure (frozen readings).</li>
+          <li>Mobile-B has only one valid workplace session (899 readings). Results are notable but limited in scope.</li>
+          <li>Temperature readings from enclosed mobile devices carry ~+1.3°C upward bias due to ESP32 heat.</li>
+          <li>Battery life ~4–5 hours per charge. Mobile-B depleted to 0% twice during the study.</li>
+          <li>Real-time alerts require active Wi-Fi. No alerts during offline periods.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ── DOWNLOAD ── -->
+    <section class="download-section reveal">
+      <div class="section-label" style="justify-content:center">Research Paper</div>
+      <h2>Full Report</h2>
+      <div class="download-card">
+        <p>
+          Full applied research report — HIVIS Monitor, Applied Research Student Showcase 2026,
+          Saskatchewan Polytechnic. Includes full methodology, raw data analysis, firmware
+          development log, and complete findings.
+        </p>
+        <a
+          href="docs/RanieridosSantosVilela_HIVIS_Report.pdf"
+          class="btn-download"
+          download
+          target="_blank"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download Full Report (PDF)
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <p>© 2026 Ranieri Vilela · <a href="/">HIVIS Monitor</a> · hvht.net</p>
+      <p class="footer-sdg">SDG 3 · SDG 8 · SDG 9</p>
+    </footer>
+
+    <script>
+      // Reveal on scroll
+      const reveals = document.querySelectorAll('.reveal');
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e, i) => {
+          if (e.isIntersecting) {
+            setTimeout(() => e.target.classList.add('visible'), i * 80);
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      reveals.forEach(el => io.observe(el));
+
+      // Hamburger menu
+      const nav = document.querySelector('nav');
+      const hamburger = nav.querySelector('.hamburger');
+      hamburger.addEventListener('click', () => {
+        const open = nav.classList.toggle('open');
+        hamburger.setAttribute('aria-expanded', open);
+      });
+      document.addEventListener('click', e => {
+        if (!nav.contains(e.target)) {
+          nav.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+        }
+      });
+    </script>
+
+  </body>
+</html>
